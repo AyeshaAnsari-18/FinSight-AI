@@ -1,23 +1,33 @@
-import { useState } from "react";
-import Navbar from "./components/Navbar";
-import FeatureTabs from "./components/FeatureTabs";
-import FeatureSection from "./components/FeatureSection";
-import "./App.css";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import AccountantLayout from "./roles/Accountant/layout/AccountantLayout";
+// import AuditorLayout from "./roles/auditor/AuditorLayout";
+// import ManagerLayout from "./roles/manager/ManagerLayout";
+// import ComplianceLayout from "./roles/compliance/ComplianceLayout";
+{/* import Login from "./pages/Login"; */}
 
 function App() {
-  const [activeTab, setActiveTab] = useState("Close Automation");
+  // For now, we can hardcode role = 'accountant' to test
+  const role = "accountant"; 
+  // Later, use: localStorage.getItem("role") or AuthContext
 
   return (
-    <div className="font-sans bg-white min-h-screen">
-      <Navbar />
-      <main className="px-6 md:px-16 lg:px-24 mt-12">
-        <h1 className="text-center text-3xl md:text-4xl font-bold mb-8 text-gray-800">
-          FinSight Software
-        </h1>
-        <FeatureTabs activeTab={activeTab} onTabChange={setActiveTab} />
-        <FeatureSection activeTab={activeTab} />
-      </main>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        {/*} <Route path="/login" element={<Login />} /> */}
+
+        {/* Role-based entry point */}
+        <Route
+          path="/*"
+          element={
+            role === "accountant" ? <AccountantLayout /> :
+            // role === "auditor" ? <AuditorLayout /> :
+            // role === "manager" ? <ManagerLayout /> :
+            // role === "compliance" ? <ComplianceLayout /> :
+            <AccountantLayout />
+          }
+        />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
