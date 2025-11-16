@@ -1,21 +1,18 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AccountantLayout from "./roles/Accountant/layout/AccountantLayout";
-// import AuditorLayout from "./roles/auditor/AuditorLayout";
-// import ManagerLayout from "./roles/manager/ManagerLayout";
-// import ComplianceLayout from "./roles/compliance/ComplianceLayout";
-{/* import Login from "./pages/Login"; */}
+import AccountantRoutes from "./roles/Accountant/routes/AccountantRoutes";
+
+type UserRole = "accountant" | "auditor" | "manager" | "compliance";
 
 function App() {
-  // For now, we can hardcode role = 'accountant' to test
-  const role = "accountant"; 
-  // Later, use: localStorage.getItem("role") or AuthContext
+  const role: UserRole = "accountant"; 
+  // Later replace with: localStorage.getItem("role") as UserRole
 
   return (
     <BrowserRouter>
       <Routes>
-        {/*} <Route path="/login" element={<Login />} /> */}
 
-        {/* Role-based entry point */}
+        {/* Role-based layout */}
         <Route
           path="/*"
           element={
@@ -23,9 +20,15 @@ function App() {
             // role === "auditor" ? <AuditorLayout /> :
             // role === "manager" ? <ManagerLayout /> :
             // role === "compliance" ? <ComplianceLayout /> :
-            <AccountantLayout />
+            <div>Invalid role</div>
           }
-        />
+        >
+          {/* Nested role routes */}
+          {role === "accountant" && (
+            <Route path="accountant/*" element={<AccountantRoutes />} />
+          )}
+        </Route>
+
       </Routes>
     </BrowserRouter>
   );
