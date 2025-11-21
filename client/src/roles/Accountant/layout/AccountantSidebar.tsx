@@ -1,13 +1,34 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Upload, CheckCircle, Repeat, Book, AlertTriangle, FileText, Bot } from "lucide-react";
+import {
+  LayoutDashboard,
+  Upload,
+  CheckCircle,
+  Repeat,
+  Book,
+  AlertTriangle,
+  FileText,
+  Bot,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 
-export const accountantMenu = [
+// FIXED: path is ALWAYS a string
+interface MenuItem {
+  label: string;
+  icon: React.ComponentType<any>;
+  path: string;
+  children?: { label: string; path: string }[];
+}
+
+// Menu List
+export const accountantMenu: MenuItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/accountant" },
   { label: "Upload Documents", icon: Upload, path: "/accountant/upload" },
   {
     label: "Tasks",
     icon: CheckCircle,
+    path: "", // parent menu
     children: [
       { label: "Accrual Adjustments", path: "/accountant/tasks/accruals" },
       { label: "Tax Adjustments", path: "/accountant/tasks/tax" },
@@ -16,6 +37,7 @@ export const accountantMenu = [
   {
     label: "Reconciliation",
     icon: Repeat,
+    path: "",
     children: [
       { label: "Bank Reconciliation", path: "/accountant/reconcile/bank" },
       { label: "Vendor Reconciliation", path: "/accountant/reconcile/vendor" },
@@ -28,16 +50,31 @@ export const accountantMenu = [
 ];
 
 const AccountantSidebar = () => {
-  const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({});
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const toggleMenu = (label: string) => {
     setOpenMenus((prev) => ({ ...prev, [label]: !prev[label] }));
   };
 
   return (
-    <aside className="w-64 bg-white border-r min-h-screen p-4 flex flex-col">
-      <h1 className="text-2xl font-bold mb-6">Accountant</h1>
+    <aside
+      className={`${
+        isExpanded ? "w-64" : "w-20"
+      } bg-[#0A2342] text-white min-h-screen p-4 flex flex-col transition-all duration-300`}
+    >
+      {/* Toggle Expand/Collapse */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="mb-6 text-white hover:text-[#F5C542] transition"
+      >
+        {isExpanded ? <ChevronsLeft size={24} /> : <ChevronsRight size={24} />}
+      </button>
 
+      {/* Sidebar Title */}
+      {isExpanded && <h1 className="text-xl font-bold mb-6">Accountant</h1>}
+
+      {/* Navigation */}
       <nav className="flex flex-col gap-2">
         {accountantMenu.map((item) => {
           if (item.children) {
@@ -45,19 +82,26 @@ const AccountantSidebar = () => {
               <div key={item.label}>
                 <button
                   onClick={() => toggleMenu(item.label)}
-                  className="flex items-center gap-2 w-full py-2 px-2 rounded hover:bg-gray-100 text-left font-medium"
+                  className="flex items-center gap-3 w-full py-2 px-2 rounded 
+                  hover:bg-[#1D4ED8] transition text-left font-medium"
                 >
-                  <item.icon className="w-5 h-5" />
-                  {item.label}
+                  <item.icon className="w-5 h-5 text-white" />
+                  {isExpanded && item.label}
                 </button>
-                {openMenus[item.label] && (
-                  <div className="ml-6 flex flex-col gap-1 mt-1">
+
+                {/* Child Menu */}
+                {openMenus[item.label] && isExpanded && (
+                  <div className="ml-7 flex flex-col gap-1 mt-1">
                     {item.children.map((child) => (
                       <NavLink
                         key={child.label}
                         to={child.path}
-                        className={({ isActive }: { isActive: boolean }) =>
-                          `py-1 px-2 rounded hover:bg-gray-200 ${isActive ? "bg-gray-200 font-bold" : ""}`
+                        className={({ isActive }) =>
+                          `py-1 px-2 rounded transition ${
+                            isActive
+                              ? "bg-[#F5C542] text-[#0A2342] font-semibold"
+                              : "text-white hover:bg-[#1D4ED8]"
+                          }`
                         }
                       >
                         {child.label}
@@ -69,16 +113,21 @@ const AccountantSidebar = () => {
             );
           }
 
+          // Simple menu item (no children)
           return (
             <NavLink
               key={item.label}
               to={item.path}
-              className={({ isActive }: { isActive: boolean }) =>
-                `flex items-center gap-2 py-2 px-2 rounded hover:bg-gray-100 font-medium ${isActive ? "bg-gray-100 font-bold" : ""}`
+              className={({ isActive }) =>
+                `flex items-center gap-3 py-2 px-2 rounded transition font-medium ${
+                  isActive
+                    ? "bg-[#F5C542] text-[#0A2342] font-semibold"
+                    : "text-white hover:bg-[#1D4ED8]"
+                }`
               }
             >
               <item.icon className="w-5 h-5" />
-              {item.label}
+              {isExpanded && item.label}
             </NavLink>
           );
         })}

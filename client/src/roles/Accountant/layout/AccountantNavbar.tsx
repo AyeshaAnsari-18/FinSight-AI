@@ -3,12 +3,18 @@ import type { ChangeEvent } from "react";
 import { Search, Bell, Plus, Upload, BookPlus } from "lucide-react";
 import { Input } from "../../../components/ui/input";
 import { Button } from "../../../components/ui/button";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "../../../components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "../../../components/ui/dropdown-menu";
 import { Avatar, AvatarImage, AvatarFallback } from "../../../components/ui/avatar";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
-export default function AccountantNavbar() {
+const AccountantNavbar = () => {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
 
@@ -18,19 +24,19 @@ export default function AccountantNavbar() {
   };
 
   return (
-    <div className="w-full h-16 bg-white border-b px-4 flex items-center justify-between shadow-sm">
+    <div className="w-full h-16 bg-[#0A2342] px-4 flex items-center justify-between shadow-md border-b border-[#1D4ED8]">
       
       {/* Left: Search Bar */}
       <div className="flex items-center gap-2 w-1/3">
         <div className="relative w-full">
           <Input
             placeholder="Search tasks, documents, journals..."
-            className="pl-10"
+            className="pl-10 bg-white/90 focus:bg-white text-[#0A2342] placeholder-gray-500 border border-gray-300 shadow-sm"
             value={search}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && handleSearch()}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           />
-          <Search className="w-4 h-4 text-gray-500 absolute left-3 top-3" />
+          <Search className="w-4 h-4 text-gray-600 absolute left-3 top-3" />
         </div>
       </div>
 
@@ -42,6 +48,7 @@ export default function AccountantNavbar() {
           <Button
             variant="ghost"
             size="icon"
+            className="text-white hover:bg-[#1D4ED8]"
             onClick={() => navigate("/accountant/alerts")}
           >
             <Bell className="w-5 h-5" />
@@ -51,22 +58,25 @@ export default function AccountantNavbar() {
         {/* Quick Actions */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button className="flex items-center gap-2">
+            <Button className="flex items-center gap-2 bg-[#F5C542] text-[#0A2342] hover:bg-[#e4b134]">
               <Plus size={16} /> Quick Actions
             </Button>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuContent
+            align="end"
+            className="w-52 bg-white shadow-md border border-gray-200"
+          >
             <DropdownMenuItem
               onClick={() => navigate("/accountant/upload")}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 hover:bg-[#1D4ED8] hover:text-white transition"
             >
               <Upload size={16} /> Upload Document
             </DropdownMenuItem>
 
             <DropdownMenuItem
               onClick={() => navigate("/accountant/journals/create")}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 hover:bg-[#1D4ED8] hover:text-white transition"
             >
               <BookPlus size={16} /> New Journal Entry
             </DropdownMenuItem>
@@ -75,7 +85,7 @@ export default function AccountantNavbar() {
 
             <DropdownMenuItem
               onClick={() => navigate("/accountant/tasks/accruals")}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 hover:bg-[#1D4ED8] hover:text-white transition"
             >
               <Plus size={16} /> Add Accrual Adjustment
             </DropdownMenuItem>
@@ -85,21 +95,35 @@ export default function AccountantNavbar() {
         {/* User Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Avatar className="cursor-pointer">
+            <Avatar className="cursor-pointer border-2 border-[#F5C542]">
               <AvatarImage src="/avatar.png" />
-              <AvatarFallback>AA</AvatarFallback>
+              <AvatarFallback className="bg-[#F5C542] text-[#0A2342] font-bold">
+                AA
+              </AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent align="end" className="w-40">
-            <DropdownMenuItem onClick={() => navigate("/profile")}>
+          <DropdownMenuContent
+            align="end"
+            className="w-40 bg-white shadow-md border border-gray-200"
+          >
+            <DropdownMenuItem
+              onClick={() => navigate("/profile")}
+              className="hover:bg-[#1D4ED8] hover:text-white transition"
+            >
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate("/settings")}>
+            <DropdownMenuItem
+              onClick={() => navigate("/settings")}
+              className="hover:bg-[#1D4ED8] hover:text-white transition"
+            >
               Settings
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate("/logout")}>
+            <DropdownMenuItem
+              onClick={() => navigate("/logout")}
+              className="hover:bg-red-500 hover:text-white transition"
+            >
               Logout
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -108,4 +132,6 @@ export default function AccountantNavbar() {
       </div>
     </div>
   );
-}
+};
+
+export default AccountantNavbar;
