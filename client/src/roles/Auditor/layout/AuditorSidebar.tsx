@@ -2,7 +2,6 @@ import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
-  Upload,
   CheckCircle,
   Repeat,
   Book,
@@ -13,7 +12,7 @@ import {
   ChevronsRight,
 } from "lucide-react";
 
-// FIXED: path is ALWAYS a string
+// Define Menu Item Interface
 interface MenuItem {
   label: string;
   icon: React.ComponentType<any>;
@@ -21,35 +20,61 @@ interface MenuItem {
   children?: { label: string; path: string }[];
 }
 
-// Menu List
-export const accountantMenu: MenuItem[] = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/accountant" },
-  { label: "Upload Documents", icon: Upload, path: "/accountant/upload" },
+// Auditor Menu
+export const auditorMenu: MenuItem[] = [
+  { label: "Dashboard", icon: LayoutDashboard, path: "/auditor" },
+  { label: "Audit Trail", icon: FileText, path: "/auditor/auditTrail" },
   {
-    label: "Tasks",
+    label: "Clearance",
     icon: CheckCircle,
-    path: "", // parent menu
+    path: "/auditor/clearance",
+  },
+  {
+    label: "Compliance Check",
+    icon: CheckCircle,
+    path: "/auditor/compliance",
+  },
+  {
+    label: "Department Audit Overview",
+    icon: Book,
+    path: "/auditor/department-overview",
+  },
+  {
+    label: "Flags & Red Alerts",
+    icon: AlertTriangle,
+    path: "/auditor/flags",
+  },
+  {
+    label: "Journals",
+    icon: Book,
+    path: "",
     children: [
-      { label: "Accrual Adjustments", path: "/accountant/tasks/accruals" },
-      { label: "Tax Adjustments", path: "/accountant/tasks/tax" },
+      { label: "Journals Details", path: "/auditor/journals/details" },
+      { label: "Journals Exceptions", path: "/auditor/journals/exceptions" },
+      { label: "Journals Review", path: "/auditor/journals/review" },
     ],
   },
   {
-    label: "Reconciliation",
+    label: "Reconciliations",
     icon: Repeat,
     path: "",
     children: [
-      { label: "Bank Reconciliation", path: "/accountant/reconcile/bank" },
-      { label: "Vendor Reconciliation", path: "/accountant/reconcile/vendor" },
+      { label: "Reconciliation Issues", path: "/auditor/reconciliations/issues" },
+      { label: "Reconciliation Review", path: "/auditor/reconciliations/review" },
     ],
   },
-  { label: "Journal Entries", icon: Book, path: "/accountant/journals" },
-  { label: "Alerts", icon: AlertTriangle, path: "/accountant/alerts" },
-  { label: "My Reports", icon: FileText, path: "/accountant/reports" },
-  { label: "AI Copilot", icon: Bot, path: "/accountant/copilot" },
+  {
+    label: "Tasks",
+    icon: CheckCircle,
+    path: "",
+    children: [
+      { label: "Task Audit View", path: "/auditor/tasks/view" },
+    ],
+  },
+  { label: "AI Copilot", icon: Bot, path: "/auditor/copilot" },
 ];
 
-const AccountantSidebar = () => {
+const AuditorSidebar = () => {
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
   const [isExpanded, setIsExpanded] = useState(true);
 
@@ -72,18 +97,17 @@ const AccountantSidebar = () => {
       </button>
 
       {/* Sidebar Title */}
-      {isExpanded && <h1 className="text-xl font-bold mb-6">Accountant</h1>}
+      {isExpanded && <h1 className="text-xl font-bold mb-6">Auditor</h1>}
 
       {/* Navigation */}
       <nav className="flex flex-col gap-2">
-        {accountantMenu.map((item) => {
+        {auditorMenu.map((item) => {
           if (item.children) {
             return (
               <div key={item.label}>
                 <button
                   onClick={() => toggleMenu(item.label)}
-                  className="flex items-center gap-3 w-full py-2 px-2 rounded 
-                  hover:bg-[#1D4ED8] transition text-left font-medium"
+                  className="flex items-center gap-3 w-full py-2 px-2 rounded hover:bg-[#1D4ED8] transition text-left font-medium"
                 >
                   <item.icon className="w-5 h-5 text-white" />
                   {isExpanded && item.label}
@@ -136,4 +160,4 @@ const AccountantSidebar = () => {
   );
 };
 
-export default AccountantSidebar;
+export default AuditorSidebar;

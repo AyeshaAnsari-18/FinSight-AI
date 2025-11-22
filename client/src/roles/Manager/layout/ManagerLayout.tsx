@@ -1,14 +1,14 @@
 import { Outlet } from "react-router-dom";
-import AccountantSidebar from "./AccountantSidebar";
-import AccountantNavbar from "./AccountantNavbar";
+import ManagerSidebar from "./ManagerSidebar";
+import ManagerNavbar from "./ManagerNavbar";
 
-const AccountantLayout = () => {
+const ManagerLayout = () => {
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <AccountantSidebar />
+      <ManagerSidebar />
 
       <div className="flex flex-col flex-1">
-        <AccountantNavbar />
+        <ManagerNavbar />
 
         <main className="p-4">
           <Outlet />   {/* Router puts pages here */}
@@ -18,4 +18,4 @@ const AccountantLayout = () => {
   );
 };
 
-export default AccountantLayout;
+export default ManagerLayout;

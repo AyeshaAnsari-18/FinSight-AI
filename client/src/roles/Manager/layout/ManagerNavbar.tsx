@@ -1,6 +1,5 @@
-import { useState } from "react";
-import type { ChangeEvent } from "react";
-import { Search, Bell, Plus, Upload, BookPlus } from "lucide-react";
+import { useState, type ChangeEvent } from "react";
+import { Search, Bell, Plus, FileText} from "lucide-react";
 import { Input } from "../../../components/ui/input";
 import { Button } from "../../../components/ui/button";
 import {
@@ -14,23 +13,23 @@ import { Avatar, AvatarImage, AvatarFallback } from "../../../components/ui/avat
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
-const AccountantNavbar = () => {
+const ManagerNavbar = () => {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
 
   const handleSearch = () => {
     if (!search) return;
-    navigate(`/accountant/search?q=${search}`);
+    navigate(`/manager/search?q=${search}`);
   };
 
   return (
     <div className="w-full h-16 bg-[#0A2342] px-4 flex items-center justify-between shadow-md border-b border-[#1D4ED8]">
-      
+
       {/* Left: Search Bar */}
       <div className="flex items-center gap-2 w-1/3">
         <div className="relative w-full">
           <Input
-            placeholder="Search tasks, documents, journals..."
+            placeholder="Search reports, tasks, departments..."
             className="pl-10 bg-white/90 focus:bg-white text-[#0A2342] placeholder-gray-500 border border-gray-300 shadow-sm"
             value={search}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
@@ -43,13 +42,13 @@ const AccountantNavbar = () => {
       {/* Right: Icons */}
       <div className="flex items-center gap-4">
 
-        {/* Alerts */}
+        {/* Alerts / Notifications */}
         <motion.div whileHover={{ scale: 1.1 }}>
           <Button
             variant="ghost"
             size="icon"
             className="text-white hover:bg-[#1D4ED8]"
-            onClick={() => navigate("/accountant/alerts")}
+            onClick={() => navigate("/manager/complianceOverview")}
           >
             <Bell className="w-5 h-5" />
           </Button>
@@ -63,31 +62,26 @@ const AccountantNavbar = () => {
             </Button>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent
-            align="end"
-            className="w-52 bg-white shadow-md border border-gray-200"
-          >
+          <DropdownMenuContent align="end" className="w-52 bg-white shadow-md border border-gray-200">
             <DropdownMenuItem
-              onClick={() => navigate("/accountant/upload")}
+              onClick={() => navigate("/manager/narrativeReports")}
               className="flex items-center gap-2 hover:bg-[#1D4ED8] hover:text-white transition"
             >
-              <Upload size={16} /> Upload Document
+              <FileText size={16} /> View Narrative Reports
             </DropdownMenuItem>
 
             <DropdownMenuItem
-              onClick={() => navigate("/accountant/journals/create")}
+              onClick={() => navigate("/manager/forecastScenarios")}
               className="flex items-center gap-2 hover:bg-[#1D4ED8] hover:text-white transition"
             >
-              <BookPlus size={16} /> New Journal Entry
+              <FileText size={16} /> Forecast Scenarios
             </DropdownMenuItem>
 
-            <DropdownMenuSeparator />
-
             <DropdownMenuItem
-              onClick={() => navigate("/accountant/tasks/accruals")}
+              onClick={() => navigate("/manager/whatIfAnalysis")}
               className="flex items-center gap-2 hover:bg-[#1D4ED8] hover:text-white transition"
             >
-              <Plus size={16} /> Add Accrual Adjustment
+              <FileText size={16} /> What-If Analysis
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -98,15 +92,12 @@ const AccountantNavbar = () => {
             <Avatar className="cursor-pointer border-2 border-[#F5C542]">
               <AvatarImage src="/avatar.png" />
               <AvatarFallback className="bg-[#F5C542] text-[#0A2342] font-bold">
-                AA
+                MG
               </AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent
-            align="end"
-            className="w-40 bg-white shadow-md border border-gray-200"
-          >
+          <DropdownMenuContent align="end" className="w-40 bg-white shadow-md border border-gray-200">
             <DropdownMenuItem
               onClick={() => navigate("/profile")}
               className="hover:bg-[#1D4ED8] hover:text-white transition"
@@ -134,4 +125,4 @@ const AccountantNavbar = () => {
   );
 };
 
-export default AccountantNavbar;
+export default ManagerNavbar;

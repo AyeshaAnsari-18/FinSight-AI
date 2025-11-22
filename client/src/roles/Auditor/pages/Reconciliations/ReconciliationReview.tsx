@@ -1,140 +1,96 @@
 import { useState } from "react";
+import { Repeat } from "lucide-react";
 
-const BankReconcilePage = () => {
-  const initialData = [
-    {
-      id: "BR-001",
-      date: "2024-01-05",
-      status: "Completed",
-      variance: 0,
-    },
-    {
-      id: "BR-002",
-      date: "2024-01-12",
-      status: "Variance Detected",
-      variance: 152.4,
-    },
-    {
-      id: "BR-003",
-      date: "2024-01-20",
-      status: "In Progress",
-      variance: 45.0,
-    },
+const ReconciliationReview = () => {
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+
+  const reviewData = [
+    { id: 1, type: "Bank Reconciliation", reviewer: "John Doe", reviewDate: "2025-11-22", status: "Approved" },
+    { id: 2, type: "Vendor Reconciliation", reviewer: "Jane Smith", reviewDate: "2025-11-21", status: "Pending" },
+    { id: 3, type: "Bank Reconciliation", reviewer: "Mark Taylor", reviewDate: "2025-11-20", status: "Rejected" },
   ];
 
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [sortBy, setSortBy] = useState("date");
-
-  const statusColor = (status: string) => {
-    switch (status) {
-      case "Completed":
-        return "bg-green-100 text-green-700";
-      case "Variance Detected":
-        return "bg-red-100 text-red-700";
-      case "In Progress":
-        return "bg-yellow-100 text-yellow-700";
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
-  };
-
-  // Search filter (searching by ID)
-  let filteredData = initialData.filter((item) =>
-    item.id.toLowerCase().includes(search.toLowerCase())
-  );
-
-  // Status filter
-  if (statusFilter !== "All") {
-    filteredData = filteredData.filter((item) => item.status === statusFilter);
-  }
-
-  // Sorting logic
-  if (sortBy === "date") {
-    filteredData = filteredData.sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
-  } else if (sortBy === "variance") {
-    filteredData = filteredData.sort((a, b) => b.variance - a.variance);
-  }
+  const filteredData = reviewData.filter((item) => {
+    const matchesSearch =
+      item.type.toLowerCase().includes(search.toLowerCase()) ||
+      item.reviewer.toLowerCase().includes(search.toLowerCase());
+    const matchesStatus = statusFilter ? item.status === statusFilter : true;
+    return matchesSearch && matchesStatus;
+  });
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Bank Reconciliation</h1>
-
-      {/* Filters Section */}
-      <div className="bg-white shadow rounded-lg p-4 flex gap-4 flex-wrap">
-
-        {/* Search */}
-        <input
-          type="text"
-          placeholder="Search by ID (e.g., BR-001)"
-          className="border px-3 py-2 rounded w-64"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-
-        {/* Status Filter */}
-        <select
-          className="border px-3 py-2 rounded"
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
-          <option>All</option>
-          <option>Completed</option>
-          <option>In Progress</option>
-          <option>Variance Detected</option>
-        </select>
-
-        {/* Sort Filter */}
-        <select
-          className="border px-3 py-2 rounded"
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-        >
-          <option value="date">Sort by Date</option>
-          <option value="variance">Sort by Variance</option>
-        </select>
-
+    <div className="p-6 bg-gray-50 min-h-screen">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-6">
+        <Repeat className="w-6 h-6 text-[#0A2342]" />
+        <h1 className="text-2xl font-bold text-[#0A2342]">Reconciliation Review</h1>
       </div>
 
-      {/* List Section */}
-      <div className="bg-white shadow rounded-lg p-6 space-y-4">
-        <h2 className="text-lg font-semibold">Recent Bank Reconciliations</h2>
+      {/* Filters */}
+      <div className="flex flex-wrap gap-4 mb-6">
+        <input
+          type="text"
+          placeholder="Search by type or reviewer..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="p-2 border border-gray-300 rounded w-full sm:w-1/3"
+        />
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="p-2 border border-gray-300 rounded"
+        >
+          <option value="">All Statuses</option>
+          <option value="Approved">Approved</option>
+          <option value="Pending">Pending</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+      </div>
 
-        <div className="space-y-3">
-          {filteredData.map((rec) => (
-            <div
-              key={rec.id}
-              className="border p-4 rounded-lg flex justify-between items-center"
-            >
-              <div>
-                <div className="font-semibold">{rec.id}</div>
-                <div className="text-sm text-gray-600">Date: {rec.date}</div>
-                <div className="text-sm text-gray-600">
-                  Variance: ${rec.variance.toFixed(2)}
-                </div>
-              </div>
-
-              <div
-                className={`px-3 py-1 text-sm rounded-full ${statusColor(
-                  rec.status
-                )}`}
-              >
-                {rec.status}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {filteredData.length === 0 && (
-          <div className="text-gray-500 text-center py-4">
-            No matching bank reconciliations found.
-          </div>
-        )}
+      {/* Table */}
+      <div className="bg-white shadow rounded overflow-x-auto">
+        <table className="min-w-full table-auto">
+          <thead className="bg-[#0A2342] text-white">
+            <tr>
+              <th className="py-3 px-4 text-left">ID</th>
+              <th className="py-3 px-4 text-left">Type</th>
+              <th className="py-3 px-4 text-left">Reviewer</th>
+              <th className="py-3 px-4 text-left">Review Date</th>
+              <th className="py-3 px-4 text-left">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredData.length > 0 ? (
+              filteredData.map((item) => (
+                <tr key={item.id} className="border-b hover:bg-gray-100 transition">
+                  <td className="py-2 px-4">{item.id}</td>
+                  <td className="py-2 px-4">{item.type}</td>
+                  <td className="py-2 px-4">{item.reviewer}</td>
+                  <td className="py-2 px-4">{item.reviewDate}</td>
+                  <td
+                    className={`py-2 px-4 font-semibold ${
+                      item.status === "Approved"
+                        ? "text-green-600"
+                        : item.status === "Pending"
+                        ? "text-yellow-600"
+                        : "text-red-600"
+                    }`}
+                  >
+                    {item.status}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={5} className="py-4 text-center text-gray-500">No records found.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
 };
 
-export default BankReconcilePage;
+export default ReconciliationReview;
