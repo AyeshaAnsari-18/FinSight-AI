@@ -37,11 +37,7 @@ export const managerMenu: MenuItem[] = [
   {
     label: "Fiscal Close",
     icon: Repeat,
-    path: "",
-    children: [
-      { label: "Fiscal Close Agent", path: "/manager/fiscalCloseAgent" },
-      { label: "Fiscal Close Main", path: "/manager/fiscalCloseMain" },
-    ],
+    path: "/manager/fiscalCloseAgent",
   },
   {
     label: "Forecasting",

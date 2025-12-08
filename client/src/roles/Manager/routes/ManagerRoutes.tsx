@@ -22,7 +22,7 @@ const ManagerRoutes = () => {
       <Route path="/fiscalCloseAgent" element={<FiscalCloseAgent />} />
       <Route path="/fiscalCloseMain" element={<FiscalCloseMain />} />
       <Route path="/forecastScenarios" element={<ForecastScenarios />} />
-      <Route path="/WhatIfAnalysis" element={<WhatIfAnalysis />} />
+      <Route path="/whatIfAnalysis" element={<WhatIfAnalysis />} />
       <Route path="/narrativeReports" element={<NarrativeReports />} />
       <Route path="/managerTasks" element={<ManagerTasks />} />
     </Routes>

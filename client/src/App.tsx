@@ -68,18 +68,27 @@ export default App;
 */}
 
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-
 import Login from "./Pages/login/Page";
 
+// Layouts
 import AccountantLayout from "./roles/Accountant/layout/AccountantLayout";
-import ManagerLayout from "./roles/Manager/layout/ManagerLayout";
 import AuditorLayout from "./roles/Auditor/layout/AuditorLayout";
 import ComplianceLayout from "./roles/Compliance/layout/ComplianceLayout";
+import ManagerLayout from "./roles/Manager/layout/ManagerLayout";
+
+// Role Routes
+import AccountantRoutes from "./roles/Accountant/routes/AccountantRoutes";
+import AuditorRoutes from "./roles/Auditor/routes/AuditorRoutes";
+import ComplianceRoutes from "./roles/Compliance/routes/ComplianceRoutes";
+import ManagerRoutes from "./roles/Manager/routes/ManagerRoutes";
+
+// Manager extra pages
+import FiscalCloseMain from "./roles/Manager/pages/FiscalClose/FiscalCloseMain";
 
 const App = () => {
   const roleId = parseInt(localStorage.getItem("role_id") || "0");
 
-  // Map role_id to route path
+  // Map role_id → root path
   const rolePathMap: Record<number, string> = {
     1: "accountant",
     2: "manager",
@@ -92,22 +101,42 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        {/* Login */}
+
+        {/* LOGIN PAGE */}
         <Route path="/login" element={<Login />} />
 
-        {/* Root redirection based on role_id */}
+        {/* ROOT REDIRECT */}
         <Route
           path="/"
-          element={
-            path ? <Navigate to={`/${path}`} /> : <Navigate to="/login" />
-          }
+          element={path ? <Navigate to={`/${path}`} /> : <Navigate to="/login" />}
         />
 
-        {/* FULL ROLE LAYOUTS */}
-        <Route path="/accountant/*" element={<AccountantLayout />} />
-        <Route path="/manager/*" element={<ManagerLayout />} />
-        <Route path="/auditor/*" element={<AuditorLayout />} />
-        <Route path="/compliance/*" element={<ComplianceLayout />} />
+        {/* ACCOUNTANT ROUTES */}
+        <Route path="/accountant/*" element={<AccountantLayout />}>
+          <Route path="*" element={<AccountantRoutes />} />
+        </Route>
+
+        {/* MANAGER ROUTES */}
+        <Route path="/manager/*" element={<ManagerLayout />}>
+
+          {/* Manager main routes */}
+          <Route path="*" element={<ManagerRoutes />} />
+
+          {/* Specific fiscal close page */}
+          <Route path="fiscal-close" element={<FiscalCloseMain />} />
+
+        </Route>
+
+        {/* AUDITOR ROUTES */}
+        <Route path="/auditor/*" element={<AuditorLayout />}>
+          <Route path="*" element={<AuditorRoutes />} />
+        </Route>
+
+        {/* COMPLIANCE ROUTES */}
+        <Route path="/compliance/*" element={<ComplianceLayout />}>
+          <Route path="*" element={<ComplianceRoutes />} />
+        </Route>
+
       </Routes>
     </Router>
   );

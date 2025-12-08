@@ -30,7 +30,7 @@ const ManagerNavbar = () => {
         <div className="relative w-full">
           <Input
             placeholder="Search reports, tasks, departments..."
-            className="pl-10 bg-white/90 focus:bg-white text-[#0A2342] placeholder-gray-500 border border-gray-300 shadow-sm"
+            className="pl-10 bg-white/90 focus:bg-white cursor-pointer text-[#0A2342] placeholder-gray-500 border border-gray-300 shadow-sm"
             value={search}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -47,7 +47,7 @@ const ManagerNavbar = () => {
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-[#1D4ED8]"
+            className="text-white cursor-pointer hover:bg-[#1D4ED8]"
             onClick={() => navigate("/manager/complianceOverview")}
           >
             <Bell className="w-5 h-5" />
@@ -57,7 +57,7 @@ const ManagerNavbar = () => {
         {/* Quick Actions */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button className="flex items-center gap-2 bg-[#F5C542] text-[#0A2342] hover:bg-[#e4b134]">
+            <Button className="flex items-center cursor-pointer gap-2 bg-[#F5C542] text-[#0A2342] hover:bg-[#e4b134]">
               <Plus size={16} /> Quick Actions
             </Button>
           </DropdownMenuTrigger>
@@ -65,21 +65,21 @@ const ManagerNavbar = () => {
           <DropdownMenuContent align="end" className="w-52 bg-white shadow-md border border-gray-200">
             <DropdownMenuItem
               onClick={() => navigate("/manager/narrativeReports")}
-              className="flex items-center gap-2 hover:bg-[#1D4ED8] hover:text-white transition"
+              className="flex items-center cursor-pointer gap-2 hover:bg-[#1D4ED8] hover:text-white transition"
             >
               <FileText size={16} /> View Narrative Reports
             </DropdownMenuItem>
 
             <DropdownMenuItem
               onClick={() => navigate("/manager/forecastScenarios")}
-              className="flex items-center gap-2 hover:bg-[#1D4ED8] hover:text-white transition"
+              className="flex items-center cursor-pointer gap-2 hover:bg-[#1D4ED8] hover:text-white transition"
             >
               <FileText size={16} /> Forecast Scenarios
             </DropdownMenuItem>
 
             <DropdownMenuItem
               onClick={() => navigate("/manager/whatIfAnalysis")}
-              className="flex items-center gap-2 hover:bg-[#1D4ED8] hover:text-white transition"
+              className="flex items-center cursor-pointer gap-2 hover:bg-[#1D4ED8] hover:text-white transition"
             >
               <FileText size={16} /> What-If Analysis
             </DropdownMenuItem>
@@ -100,20 +100,26 @@ const ManagerNavbar = () => {
           <DropdownMenuContent align="end" className="w-40 bg-white shadow-md border border-gray-200">
             <DropdownMenuItem
               onClick={() => navigate("/profile")}
-              className="hover:bg-[#1D4ED8] hover:text-white transition"
+              className="hover:bg-[#1D4ED8] hover:text-white transition cursor-pointer"
             >
               Profile
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => navigate("/settings")}
-              className="hover:bg-[#1D4ED8] hover:text-white transition"
+              className="hover:bg-[#1D4ED8] hover:text-white transition cursor-pointer"
             >
               Settings
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => navigate("/logout")}
-              className="hover:bg-red-500 hover:text-white transition"
+              onClick={() => {
+                // clear auth
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+
+                navigate("/login", { replace: true, state: { message: "Successfully logged out" }});
+              }}
+              className="hover:bg-red-500 hover:text-white transition cursor-pointer"
             >
               Logout
             </DropdownMenuItem>

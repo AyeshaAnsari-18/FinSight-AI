@@ -1,0 +1,16 @@
+{
+  "months": [
+    { "month": "January", "income": 12000, "expense": 8000 },
+    { "month": "February", "income": 15000, "expense": 7000 },
+    { "month": "March", "income": 13000, "expense": 9000 },
+    { "month": "April", "income": 14000, "expense": 8500 },
+    { "month": "May", "income": 16000, "expense": 9500 },
+    { "month": "June", "income": 15500, "expense": 9000 },
+    { "month": "July", "income": 17000, "expense": 10000 },
+    { "month": "August", "income": 16500, "expense": 9500 },
+    { "month": "September", "income": 17500, "expense": 10500 },
+    { "month": "October", "income": 18000, "expense": 11000 },
+    { "month": "November", "income": 18500, "expense": 11500 },
+    { "month": "December", "income": 20000, "expense": 12000 }
+  ]
+}

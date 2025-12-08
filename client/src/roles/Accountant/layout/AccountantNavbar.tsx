@@ -31,7 +31,7 @@ const AccountantNavbar = () => {
         <div className="relative w-full">
           <Input
             placeholder="Search tasks, documents, journals..."
-            className="pl-10 bg-white/90 focus:bg-white text-[#0A2342] placeholder-gray-500 border border-gray-300 shadow-sm"
+            className="pl-10 bg-white/90 focus:bg-white cursor-pointer text-[#0A2342] placeholder-gray-500 border border-gray-300 shadow-sm"
             value={search}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -48,7 +48,7 @@ const AccountantNavbar = () => {
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-[#1D4ED8]"
+            className="text-white cursor-pointer hover:bg-[#1D4ED8]"
             onClick={() => navigate("/accountant/alerts")}
           >
             <Bell className="w-5 h-5" />
@@ -58,7 +58,7 @@ const AccountantNavbar = () => {
         {/* Quick Actions */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button className="flex items-center gap-2 bg-[#F5C542] text-[#0A2342] hover:bg-[#e4b134]">
+            <Button className="flex items-center cursor-pointer gap-2 bg-[#F5C542] text-[#0A2342] hover:bg-[#e4b134]">
               <Plus size={16} /> Quick Actions
             </Button>
           </DropdownMenuTrigger>
@@ -69,14 +69,14 @@ const AccountantNavbar = () => {
           >
             <DropdownMenuItem
               onClick={() => navigate("/accountant/upload")}
-              className="flex items-center gap-2 hover:bg-[#1D4ED8] hover:text-white transition"
+              className="flex items-center cursor-pointer gap-2 hover:bg-[#1D4ED8] hover:text-white transition"
             >
               <Upload size={16} /> Upload Document
             </DropdownMenuItem>
 
             <DropdownMenuItem
               onClick={() => navigate("/accountant/journals/create")}
-              className="flex items-center gap-2 hover:bg-[#1D4ED8] hover:text-white transition"
+              className="flex items-center cursor-pointer gap-2 hover:bg-[#1D4ED8] hover:text-white transition"
             >
               <BookPlus size={16} /> New Journal Entry
             </DropdownMenuItem>
@@ -85,7 +85,7 @@ const AccountantNavbar = () => {
 
             <DropdownMenuItem
               onClick={() => navigate("/accountant/tasks/accruals")}
-              className="flex items-center gap-2 hover:bg-[#1D4ED8] hover:text-white transition"
+              className="flex items-center cursor-pointer gap-2 hover:bg-[#1D4ED8] hover:text-white transition"
             >
               <Plus size={16} /> Add Accrual Adjustment
             </DropdownMenuItem>
@@ -109,20 +109,26 @@ const AccountantNavbar = () => {
           >
             <DropdownMenuItem
               onClick={() => navigate("/profile")}
-              className="hover:bg-[#1D4ED8] hover:text-white transition"
+              className="hover:bg-[#1D4ED8] hover:text-white transition cursor-pointer"
             >
               Profile
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => navigate("/settings")}
-              className="hover:bg-[#1D4ED8] hover:text-white transition"
+              className="hover:bg-[#1D4ED8] hover:text-white transition cursor-pointer"
             >
               Settings
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => navigate("/logout")}
-              className="hover:bg-red-500 hover:text-white transition"
+              onClick={() => {
+                // clear auth
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+
+                navigate("/login", { replace: true, state: { message: "Successfully logged out" }});
+              }}
+              className="hover:bg-red-500 hover:text-white transition cursor-pointer"
             >
               Logout
             </DropdownMenuItem>

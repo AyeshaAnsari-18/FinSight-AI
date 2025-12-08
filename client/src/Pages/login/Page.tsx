@@ -2,9 +2,11 @@ import { useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, User, Lock } from "lucide-react";
+import { useLocation } from "react-router-dom";
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -52,13 +54,13 @@ export default function Login() {
     // 🚀 Redirect based on role_id
     // You can map role_id to role names if you want readable paths
     switch (roleId) {
-      case 1: // manager
-        localStorage.setItem("role", "manager");
-        navigate("/manager");
-        break;
-      case 2: // accountant
+      case 1: // accountant
         localStorage.setItem("role", "accountant");
         navigate("/accountant");
+        break;
+      case 2: // manager
+        localStorage.setItem("role", "manager");
+        navigate("/manager");
         break;
       case 3: // auditor
         localStorage.setItem("role", "auditor");
@@ -80,9 +82,12 @@ export default function Login() {
 
         {/* LEFT SECTION */}
         <div className="w-1/2 px-14 py-16 flex flex-col">
-          <h2 className="text-3xl font-bold text-[#3b165f] mb-10">Log in</h2>
+          <h2 className="text-3xl font-bold text-[#3b165f] mt-10 mb-10">Log in</h2>
 
           {error && <p className="text-red-500 mb-4 text-sm">{error}</p>}
+          {location.state?.message && (
+            <p className="text-green-600 text-sm mb-3">{location.state.message}</p>
+          )}
 
           <form onSubmit={handleLogin} className="flex flex-col gap-5">
 
@@ -90,7 +95,7 @@ export default function Login() {
             <div className="relative">
               <User className="absolute left-3 top-2.5 text-gray-500" size={18} />
               <input
-                className="w-full border border-gray-300 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-purple-600"
+                className="w-full border border-gray-300 cursor-pointer rounded-full py-2 pl-10 pr-4 text-sm focus:outline-purple-600"
                 placeholder="Email"
                 type="email"
                 required
@@ -99,10 +104,10 @@ export default function Login() {
             </div>
 
             {/* Password */}
-            <div className="relative">
+            <div className="relative ">
               <Lock className="absolute left-3 top-2.5 text-gray-500" size={18} />
               <input
-                className="w-full border border-gray-300 rounded-full py-2 pl-10 pr-10 text-sm focus:outline-purple-600"
+                className="w-full border border-gray-300 cursor-pointer rounded-full py-2 pl-10 pr-10 text-sm focus:outline-purple-600"
                 placeholder="Password"
                 type={showPassword ? "text" : "password"}
                 required
@@ -110,7 +115,7 @@ export default function Login() {
               />
               <button
                 type="button"
-                className="absolute right-3 top-[9px] text-gray-500"
+                className="absolute right-3 cursor-pointer top-[9px] text-gray-500"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -119,10 +124,10 @@ export default function Login() {
 
             {/* Remember + Forgot */}
             <div className="flex justify-between text-xs text-gray-500 px-1">
-              <label className="flex items-center gap-1">
+              <label className="flex items-center gap-1 cursor-pointer">
                 <input type="checkbox" className="scale-75" /> Remember Me
               </label>
-              <button type="button" className="hover:text-purple-600">
+              <button type="button" className="hover:text-purple-600 cursor-pointer">
                 Forgot Password?
               </button>
             </div>
@@ -130,23 +135,19 @@ export default function Login() {
             {/* Login Button */}
             <button
               type="submit"
-              className="bg-[#6a0dad] hover:bg-[#580aaf] text-white py-2 rounded-full mt-2 transition"
+              className="bg-[#6a0dad] hover:bg-[#580aaf] text-white py-2 cursor-pointer rounded-full mt-2 transition"
             >
               Log in
             </button>
-
-            <p className="text-xs text-center text-gray-500">
-              or <span className="text-purple-700 cursor-pointer">Sign up</span>
-            </p>
           </form>
         </div>
 
         {/* RIGHT IMAGE */}
-        <div className="w-1/2 bg-[#f5f1ff] flex items-center justify-center">
+        <div className="w-1/2 bg-[#f5f1ff] flex items-center justify-center overflow-hidden">
           <img
             src="/Login/login-image.jpg"
             alt="login"
-            className="object-contain w-full h-full"
+            className="object-cover w-full h-full"
           />
         </div>
       </div>
