@@ -134,7 +134,13 @@ const AuditorNavbar = () => {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => navigate("/logout")}
+              onClick={() => {
+                // clear auth
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+
+                navigate("/login", { replace: true, state: { message: "Successfully logged out" }});
+              }}
               className="hover:bg-red-500 hover:text-white transition"
             >
               Logout
