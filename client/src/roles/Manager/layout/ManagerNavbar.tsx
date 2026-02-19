@@ -13,9 +13,15 @@ import { Avatar, AvatarImage, AvatarFallback } from "../../../components/ui/avat
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
+import { useDispatch } from "react-redux";
+import api from "../../../lib/api"; 
+import { logOut } from "../../../store/authSlice";
+
 const ManagerNavbar = () => {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
+
+  const dispatch = useDispatch();
 
   const handleSearch = () => {
     if (!search) return;
@@ -112,12 +118,15 @@ const ManagerNavbar = () => {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => {
-                // clear auth
-                localStorage.removeItem("token");
-                localStorage.removeItem("user");
-
-                navigate("/login", { replace: true, state: { message: "Successfully logged out" }});
+              onClick={async () => {
+                try {
+                  await api.post('/auth/logout'); 
+                } catch (err) {
+                  console.error("Failed to invalidate session on server", err);
+                } finally {
+                  dispatch(logOut());
+                  navigate("/login", { replace: true, state: { message: "Successfully logged out" }});
+                }
               }}
               className="hover:bg-red-500 hover:text-white transition cursor-pointer"
             >

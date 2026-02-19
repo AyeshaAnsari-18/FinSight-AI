@@ -1,5 +1,5 @@
 const RegulatoryRequirements = () => {
-  // Dummy regulatory requirements data
+  
   const requirements = [
     { id: 1, regulation: "GDPR", applicableDept: "IT", complianceStatus: "Compliant", lastReview: "2025-11-10" },
     { id: 2, regulation: "SOX", applicableDept: "Finance", complianceStatus: "Partial", lastReview: "2025-11-12" },

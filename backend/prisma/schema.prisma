@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id                 String   @id @default(uuid())
+  email              String   @unique
+  password           String   
+  hashedRefreshToken String?  
+  
+  name               String?
+  role               UserRole @default(ACCOUNTANT)
+  
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  
+  tasksAssigned    Task[]    @relation("AssignedTo")
+  auditLogs        AuditLog[]
+  uploads          Document[]
+}
+
+enum UserRole {
+  ACCOUNTANT
+  AUDITOR
+  COMPLIANCE
+  MANAGER
+  ADMIN
+}
+
+
+model JournalEntry {
+  id          String        @id @default(uuid())
+  date        DateTime
+  description String
+  reference   String        
+  debit       Decimal       @db.Decimal(15, 2)
+  credit      Decimal       @db.Decimal(15, 2)
+  status      JournalStatus @default(DRAFT)
+  
+  riskScore   Int?          
+  flagReason  String?       
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+enum JournalStatus {
+  DRAFT
+  POSTED
+  FLAGGED
+  REJECTED
+}
+
+
+model Reconciliation {
+  id            String   @id @default(uuid())
+  month         DateTime 
+  bankBalance   Decimal  @db.Decimal(15, 2)
+  ledgerBalance Decimal  @db.Decimal(15, 2)
+  variance      Decimal  @db.Decimal(15, 2) 
+  status        ReconStatus @default(PENDING)
+  
+  notes         String?
+  createdAt     DateTime @default(now())
+}
+
+enum ReconStatus {
+  PENDING
+  MATCHED
+  DISCREPANCY
+}
+
+
+model Task {
+  id          String     @id @default(uuid())
+  title       String
+  description String?
+  dueDate     DateTime?
+  status      TaskStatus @default(TODO)
+  priority    Priority   @default(MEDIUM)
+  
+  assignedToId String
+  assignedTo   User   @relation("AssignedTo", fields: [assignedToId], references: [id])
+  
+  createdAt   DateTime @default(now())
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  DONE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+
+model Document {
+  id        String   @id @default(uuid())
+  fileName  String
+  fileUrl   String   
+  fileType  String   
+  
+  extractedText String? @db.Text
+  summary       String? @db.Text
+  
+  uploadedById String
+  uploadedBy   User   @relation(fields: [uploadedById], references: [id])
+  
+  createdAt DateTime @default(now())
+}
+
+
+model Policy {
+  id        String   @id @default(uuid())
+  title     String
+  content   String   @db.Text
+  category  String   
+  
+  embedding Json?    
+  
+  createdAt DateTime @default(now())
+}
+
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String   
+  details   String?  
+  ipAddress String?
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  
+  createdAt DateTime @default(now())
+}
+
+
+model RiskControl {
+  id          String   @id @default(uuid())
+  riskName    String
+  controlDesc String
+  status      String   
+  lastTested  DateTime?
+}
+
+
+model FiscalClose {
+  id           String   @id @default(uuid())
+  period       DateTime 
+  currentStage String   
+  completion   Int      @default(0) 
+  
+  logs         Json?    
+  
+  updatedAt    DateTime @updatedAt
+}

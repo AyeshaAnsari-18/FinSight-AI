@@ -5,7 +5,7 @@ const AuditComplianceCheck = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
-  // Sample dummy data for compliance checks
+  
   const complianceData = [
     {
       id: 1,
@@ -33,7 +33,7 @@ const AuditComplianceCheck = () => {
     },
   ];
 
-  // Filtered data based on search and status
+  
   const filteredData = complianceData.filter((item) => {
     const matchesSearch =
       item.policy.toLowerCase().includes(search.toLowerCase()) ||

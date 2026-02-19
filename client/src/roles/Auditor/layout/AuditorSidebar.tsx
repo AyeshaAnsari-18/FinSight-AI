@@ -1,3 +1,5 @@
+/* eslint-disable react-refresh/only-export-components */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
@@ -12,7 +14,7 @@ import {
   ChevronsRight,
 } from "lucide-react";
 
-// Define Menu Item Interface
+
 interface MenuItem {
   label: string;
   icon: React.ComponentType<any>;
@@ -20,7 +22,7 @@ interface MenuItem {
   children?: { label: string; path: string }[];
 }
 
-// Auditor Menu
+
 export const auditorMenu: MenuItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/auditor" },
   { label: "Audit Trail", icon: FileText, path: "/auditor/auditTrail" },
@@ -137,7 +139,7 @@ const AuditorSidebar = () => {
             );
           }
 
-          // Simple menu item (no children)
+          
           return (
             <NavLink
               key={item.label}

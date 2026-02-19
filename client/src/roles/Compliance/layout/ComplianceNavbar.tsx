@@ -120,7 +120,7 @@ const ComplianceNavbar = () => {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => {
-                // clear auth
+                
                 localStorage.removeItem("token");
                 localStorage.removeItem("user");
 

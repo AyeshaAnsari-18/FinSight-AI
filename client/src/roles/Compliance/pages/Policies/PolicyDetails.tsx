@@ -1,5 +1,5 @@
 const PolicyDetails = () => {
-  // Dummy detailed data for a policy
+  
   const policy = {
     title: "Data Privacy Policy",
     department: "IT",

@@ -1,5 +1,5 @@
 const MonitoringOverview = () => {
-  // Dummy monitoring data
+  
   const monitoringData = [
     { department: "Finance", totalChecks: 25, passed: 20, failed: 5 },
     { department: "HR", totalChecks: 15, passed: 12, failed: 3 },

@@ -13,7 +13,7 @@ import {
   ChevronsRight,
 } from "lucide-react";
 
-// Menu Item Type
+
 interface MenuItem {
   label: string;
   icon: React.ComponentType<any>;
@@ -21,7 +21,7 @@ interface MenuItem {
   children?: { label: string; path: string }[];
 }
 
-// Menu List
+
 export const managerMenu: MenuItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/manager" },
   { label: "Audit Trail", icon: Upload, path: "/manager/auditTrail" },

@@ -1,7 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import AccountantDashboard from "../pages/Dashboard/AccountantDashboard";
 
-// All other pages (disabled for now)
 import UploadPage from "../pages/Upload/UploadPage";
 import AccrualsPage from "../pages/Tasks/AccrualsPage";
 import TaxAdjustmentPage from "../pages/Tasks/TaxAdjustmentPage";

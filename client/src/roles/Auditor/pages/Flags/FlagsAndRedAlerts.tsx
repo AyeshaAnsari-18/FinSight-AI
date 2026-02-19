@@ -5,14 +5,14 @@ const FlagsAndRedAlerts = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
-  // Sample dummy flags / alerts data
+  
   const alertsData = [
     { id: 1, alert: "Missing invoice approval", department: "Finance", raisedBy: "John Doe", date: "2025-11-22", severity: "High" },
     { id: 2, alert: "Unreconciled bank transactions", department: "Accounts Payable", raisedBy: "Jane Smith", date: "2025-11-21", severity: "Medium" },
     { id: 3, alert: "Expired contract not renewed", department: "Procurement", raisedBy: "Mark Taylor", date: "2025-11-20", severity: "Low" },
   ];
 
-  // Filtered data
+  
   const filteredData = alertsData.filter((item) => {
     const matchesSearch =
       item.alert.toLowerCase().includes(search.toLowerCase()) ||

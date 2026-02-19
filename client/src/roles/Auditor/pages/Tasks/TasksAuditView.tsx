@@ -5,14 +5,14 @@ const TaskAuditView = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
-  // Sample dummy task audit data
+  
   const tasksData = [
     { id: 1, task: "Accrual Adjustments", assignedTo: "John Doe", department: "Finance", dueDate: "2025-11-25", status: "Completed" },
     { id: 2, task: "Tax Adjustments", assignedTo: "Jane Smith", department: "Finance", dueDate: "2025-11-28", status: "Pending" },
     { id: 3, task: "Bank Reconciliation Review", assignedTo: "Mark Taylor", department: "Accounts Payable", dueDate: "2025-11-24", status: "Completed" },
   ];
 
-  // Filtered data
+  
   const filteredData = tasksData.filter((item) => {
     const matchesSearch =
       item.task.toLowerCase().includes(search.toLowerCase()) ||

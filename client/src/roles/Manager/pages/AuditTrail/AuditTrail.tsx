@@ -1,10 +1,26 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState, useEffect } from "react";
+import { auditTrailApi } from "../../services/auditTrail.api";
+
 const AuditTrail = () => {
-  const auditTrailData = [
-    { id: 1, user: "Alice", action: "Approved Report", date: "2025-11-18" },
-    { id: 2, user: "Bob", action: "Reviewed Task", date: "2025-11-17" },
-    { id: 3, user: "Charlie", action: "Closed Fiscal Period", date: "2025-11-16" },
-    { id: 4, user: "David", action: "Updated Compliance", date: "2025-11-15" },
-  ];
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        const data = await auditTrailApi.getLogs();
+        setLogs(data);
+      } catch (error) {
+        console.error("Failed to fetch audit trail", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLogs();
+  }, []);
+
+  if (loading) return <div className="p-6 text-[#0A2342] font-bold">Loading Audit Trail...</div>;
 
   return (
     <div className="p-6">
@@ -20,14 +36,17 @@ const AuditTrail = () => {
             </tr>
           </thead>
           <tbody>
-            {auditTrailData.map((entry) => (
+            {logs.map((entry) => (
               <tr key={entry.id} className="hover:bg-gray-50">
                 <td className="p-2 border">{entry.id}</td>
                 <td className="p-2 border">{entry.user}</td>
                 <td className="p-2 border">{entry.action}</td>
-                <td className="p-2 border">{entry.date}</td>
+                <td className="p-2 border">{new Date(entry.date).toLocaleDateString()}</td>
               </tr>
             ))}
+            {logs.length === 0 && (
+              <tr><td colSpan={4} className="text-center p-4 text-gray-500">No logs found.</td></tr>
+            )}
           </tbody>
         </table>
       </div>

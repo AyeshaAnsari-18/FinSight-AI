@@ -1,11 +1,31 @@
 import { useState } from "react";
+import { useAccountantTasks } from "../../hooks/useAccountantTasks";
 
 const AccrualsPage = () => {
-  const initialData = [
-    { id: "AC-101", category: "Payroll Accrual", date: "2024-01-03", status: "Completed", amount: 1200 },
-    { id: "AC-102", category: "Utilities Accrual", date: "2024-01-10", status: "Pending Review", amount: 540 },
-    { id: "AC-103", category: "Month-End Accrual", date: "2024-01-18", status: "In Progress", amount: 900 },
-  ];
+  
+  const { tasks, loading, error } = useAccountantTasks();
+
+  
+  const liveData = tasks
+    .filter((t) => t.title.toLowerCase().includes("accrual"))
+    .map((t) => {
+      
+      const amountMatch = t.description?.match(/\$?(\d+(\.\d+)?)/);
+      const amount = amountMatch ? parseFloat(amountMatch[1]) : 0;
+
+      
+      let uiStatus = "Pending Review";
+      if (t.status === "DONE") uiStatus = "Completed";
+      if (t.status === "IN_PROGRESS") uiStatus = "In Progress";
+
+      return {
+        id: t.id.substring(0, 6).toUpperCase(), 
+        category: t.title,
+        date: t.dueDate ? new Date(t.dueDate).toISOString().split("T")[0] : "No Date",
+        status: uiStatus,
+        amount: amount,
+      };
+    });
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -24,19 +44,22 @@ const AccrualsPage = () => {
     }
   };
 
-  // Search → category or ID
-  let filteredData = initialData.filter(
+  if (loading) return <div className="p-10 text-center text-[#3b165f] font-bold">Loading Accruals...</div>;
+  if (error) return <div className="p-10 text-center text-red-500">{error}</div>;
+
+  
+  let filteredData = liveData.filter(
     (item) =>
       item.category.toLowerCase().includes(search.toLowerCase()) ||
       item.id.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Status filter
+  
   if (statusFilter !== "All") {
     filteredData = filteredData.filter((i) => i.status === statusFilter);
   }
 
-  // Sorting
+  
   if (sortBy === "date") {
     filteredData = filteredData.sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -51,7 +74,6 @@ const AccrualsPage = () => {
 
       {/* Filters */}
       <div className="bg-white shadow rounded-lg p-4 flex gap-4 flex-wrap">
-
         <input
           type="text"
           placeholder="Search accruals..."
@@ -79,7 +101,6 @@ const AccrualsPage = () => {
           <option value="date">Sort by Date</option>
           <option value="amount">Sort by Amount</option>
         </select>
-
       </div>
 
       {/* List */}

@@ -1,78 +1,73 @@
-import { useState } from "react";
-import { supabase } from "../../lib/supabaseClient";
-import { useNavigate } from "react-router-dom";
+import { useState, type FormEvent } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeOff, User, Lock } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import api from "../../lib/api"; 
+import { setCredentials, decodeToken } from "../../store/authSlice";
+import type { AxiosError } from "axios";
 
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: any) => {
+  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
+    console.log("handle login");
     e.preventDefault();
     setError("");
+    setLoading(true);
 
-    // 🔐 Authenticate user
-    const { data: userData, error: loginError } =
-      await supabase.auth.signInWithPassword({
-        email,
-        password,
+    try {
+      
+      const res = await api.post('/auth/signin', { 
+        email, 
+        password 
       });
 
-    if (loginError || !userData?.user) {
-      setError(loginError?.message || "Login failed");
-      return;
-    }
+      
+      const user = decodeToken(res.data.access_token);
+      
+      if (user) {
+        
+        dispatch(setCredentials({
+          user,
+          accessToken: res.data.access_token,
+          refreshToken: res.data.refresh_token
+        }));
 
-    const user = userData.user;
-
-    // 👤 Fetch user's role_id from user_profiles using id = auth.users.id
-    const { data: profile, error: profileError } = await supabase
-      .from("user_profiles")
-      .select("role_id")
-      .eq("id", user.id)
-      .single();
-
-    if (profileError || !profile) {
-      console.error(profileError);
-      setError("Error fetching user profile");
-      return;
-    }
-
-    const roleId = profile.role_id;
-
-    if (!roleId) {
-      setError("Role is missing for this user");
-      return;
-    }
-
-    // 🚀 Redirect based on role_id
-    // You can map role_id to role names if you want readable paths
-    switch (roleId) {
-      case 1: // accountant
-        localStorage.setItem("role", "accountant");
-        navigate("/accountant");
-        break;
-      case 2: // manager
-        localStorage.setItem("role", "manager");
-        navigate("/manager");
-        break;
-      case 3: // auditor
-        localStorage.setItem("role", "auditor");
-        navigate("/auditor");
-        break;
-      case 4: // compliance
-        localStorage.setItem("role", "compliance");
-        navigate("/compliance");
-        break;
-      default:
-        setError("Invalid role assigned to user");
-        break;
+        
+        switch (user.role) {
+          case 'ACCOUNTANT':
+            navigate("/accountant");
+            break;
+          case 'MANAGER':
+            navigate("/manager");
+            break;
+          case 'AUDITOR':
+            navigate("/auditor");
+            break;
+          case 'COMPLIANCE':
+            navigate("/compliance");
+            break;
+          default:
+            navigate("/dashboard");
+            break;
+        }
+      }
+    } catch (err) {
+      const error = err as AxiosError<{ message: string }>;
+      console.error(error);
+      
+      
+      const errorMessage = error.response?.data?.message || "Login failed. Check credentials.";
+      setError(errorMessage);} finally {
+      setLoading(false);
     }
   };
 
@@ -99,6 +94,7 @@ export default function Login() {
                 placeholder="Email"
                 type="email"
                 required
+                value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
@@ -111,6 +107,7 @@ export default function Login() {
                 placeholder="Password"
                 type={showPassword ? "text" : "password"}
                 required
+                value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
               <button
@@ -135,9 +132,10 @@ export default function Login() {
             {/* Login Button */}
             <button
               type="submit"
-              className="bg-[#6a0dad] hover:bg-[#580aaf] text-white py-2 cursor-pointer rounded-full mt-2 transition"
+              disabled={loading}
+              className="bg-[#6a0dad] hover:bg-[#580aaf] text-white py-2 cursor-pointer rounded-full mt-2 transition disabled:opacity-50"
             >
-              Log in
+              {loading ? "Logging in..." : "Log in"}
             </button>
           </form>
         </div>

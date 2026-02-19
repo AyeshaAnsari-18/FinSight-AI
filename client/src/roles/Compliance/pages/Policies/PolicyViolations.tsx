@@ -1,5 +1,5 @@
 const PolicyViolations = () => {
-  // Dummy data for violations
+  
   const violations = [
     { id: 1, policy: "Data Privacy Policy", department: "IT", issue: "Unauthorized access", date: "2025-11-18" },
     { id: 2, policy: "Employee Conduct Policy", department: "HR", issue: "Late submission of reports", date: "2025-11-16" },

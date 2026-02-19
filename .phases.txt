@@ -1,0 +1,15 @@
+[x] Phase 1 & 2: DB Schema, Argon2/JWT Auth, Redux State, Protected Routing.
+
+[x] Phase 3: Journals CRUD, Accountant Dashboard, Live Aggregation.
+
+[ ] Phase 4: Reconciliation Pipeline (WE ARE HERE) -> Uploading statements, Python OCR/Matching, NestJS saving, React rendering.
+
+[ ] Phase 5: Accountant Tasks & Alerts API.
+
+[ ] Phase 6: Manager Role -> Fiscal Close Graph (The big LangGraph state machine) & Forecasting.
+
+[ ] Phase 7: Auditor Role -> Audit Trail Interceptors & Exceptions Agent.
+
+[ ] Phase 8: Compliance Role -> Risk Controls & Policy Agent.
+
+[ ] Phase 9: The Universal Copilot -> Pinecone/RAG Setup for all 4 roles.

@@ -5,7 +5,7 @@ const DepartmentAuditOverview = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
-  // Sample dummy department audit data
+  
   const departmentAudits = [
     {
       id: 1,
@@ -41,7 +41,7 @@ const DepartmentAuditOverview = () => {
     },
   ];
 
-  // Filtered data based on search and status
+  
   const filteredData = departmentAudits.filter((item) => {
     const matchesSearch =
       item.department.toLowerCase().includes(search.toLowerCase()) ||

@@ -1,10 +1,26 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState, useEffect } from "react";
+import { tasksApi } from "../../services/tasks.api";
+
 const ManagerTasks = () => {
-  const tasks = [
-    { id: 1, task: "Review Audit Trail", status: "Pending", due: "2025-11-20" },
-    { id: 2, task: "Approve Forecast", status: "In Progress", due: "2025-11-22" },
-    { id: 3, task: "Check Compliance", status: "Completed", due: "2025-11-18" },
-    { id: 4, task: "Finalize Fiscal Close", status: "Pending", due: "2025-11-23" },
-  ];
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const data = await tasksApi.getMyTasks(); 
+        setTasks(data);
+      } catch (error) {
+        console.error("Failed to fetch manager tasks", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTasks();
+  }, []);
+
+  if (loading) return <div className="p-6 text-[#0A2342] font-bold">Loading Tasks...</div>;
 
   return (
     <div className="p-6">
@@ -15,6 +31,7 @@ const ManagerTasks = () => {
             <tr className="bg-gray-200">
               <th className="p-2 border">ID</th>
               <th className="p-2 border">Task</th>
+              <th className="p-2 border">Priority</th>
               <th className="p-2 border">Status</th>
               <th className="p-2 border">Due Date</th>
             </tr>
@@ -22,12 +39,20 @@ const ManagerTasks = () => {
           <tbody>
             {tasks.map((t) => (
               <tr key={t.id} className="hover:bg-gray-50">
-                <td className="p-2 border">{t.id}</td>
-                <td className="p-2 border">{t.task}</td>
-                <td className="p-2 border">{t.status}</td>
-                <td className="p-2 border">{t.due}</td>
+                <td className="p-2 border font-mono text-xs">{t.id.substring(0, 8).toUpperCase()}</td>
+                <td className="p-2 border font-medium">{t.title}</td>
+                <td className="p-2 border">
+                  <span className={`px-2 py-1 text-xs rounded-full ${t.priority === 'HIGH' || t.priority === 'URGENT' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
+                    {t.priority}
+                  </span>
+                </td>
+                <td className="p-2 border">{t.status.replace('_', ' ')}</td>
+                <td className="p-2 border text-gray-600">{t.dueDate ? new Date(t.dueDate).toLocaleDateString() : 'No date'}</td>
               </tr>
             ))}
+            {tasks.length === 0 && (
+              <tr><td colSpan={5} className="text-center p-4 text-gray-500">No pending tasks.</td></tr>
+            )}
           </tbody>
         </table>
       </div>

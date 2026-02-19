@@ -1,11 +1,31 @@
 import { useState } from "react";
+import { useAccountantTasks } from "../../hooks/useAccountantTasks";
 
 const TaxAdjustmentPage = () => {
-  const initialData = [
-    { id: "TX-201", category: "GST Adjustment", date: "2024-01-02", status: "Completed", amount: 300 },
-    { id: "TX-202", category: "Corporate Tax True-up", date: "2024-01-15", status: "Variance Detected", amount: 1200 },
-    { id: "TX-203", category: "Withholding Adjustment", date: "2024-01-21", status: "In Progress", amount: 450 },
-  ];
+  
+  const { tasks, loading, error } = useAccountantTasks();
+
+  
+  const liveData = tasks
+    .filter((t) => t.title.toLowerCase().includes("tax") || t.title.toLowerCase().includes("gst"))
+    .map((t) => {
+      
+      const amountMatch = t.description?.match(/\$?(\d+(\.\d+)?)/);
+      const amount = amountMatch ? parseFloat(amountMatch[1]) : 0;
+
+      
+      let uiStatus = "In Progress";
+      if (t.status === "DONE") uiStatus = "Completed";
+      if (t.status === "REVIEW") uiStatus = "Variance Detected"; 
+
+      return {
+        id: t.id.substring(0, 6).toUpperCase(), 
+        category: t.title,
+        date: t.dueDate ? new Date(t.dueDate).toISOString().split("T")[0] : "No Date",
+        status: uiStatus,
+        amount: amount,
+      };
+    });
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -24,19 +44,22 @@ const TaxAdjustmentPage = () => {
     }
   };
 
-  // Search by category or ID
-  let filteredData = initialData.filter(
+  if (loading) return <div className="p-10 text-center text-[#3b165f] font-bold">Loading Tax Adjustments...</div>;
+  if (error) return <div className="p-10 text-center text-red-500">{error}</div>;
+
+  
+  let filteredData = liveData.filter(
     (item) =>
       item.category.toLowerCase().includes(search.toLowerCase()) ||
       item.id.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Filter
+  
   if (statusFilter !== "All") {
     filteredData = filteredData.filter((i) => i.status === statusFilter);
   }
 
-  // Sort
+  
   if (sortBy === "date") {
     filteredData = filteredData.sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -51,7 +74,6 @@ const TaxAdjustmentPage = () => {
 
       {/* Filters */}
       <div className="bg-white shadow rounded-lg p-4 flex gap-4 flex-wrap">
-
         <input
           type="text"
           placeholder="Search tax adjustments..."
@@ -79,7 +101,6 @@ const TaxAdjustmentPage = () => {
           <option value="date">Sort by Date</option>
           <option value="amount">Sort by Amount</option>
         </select>
-
       </div>
 
       {/* List */}

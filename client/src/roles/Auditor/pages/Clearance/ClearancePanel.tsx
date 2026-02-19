@@ -5,7 +5,7 @@ const ClearancePanel = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
-  // Sample clearance data
+  
   const clearanceData = [
     {
       id: 1,
@@ -33,7 +33,7 @@ const ClearancePanel = () => {
     },
   ];
 
-  // Filtered data based on search and status
+  
   const filteredData = clearanceData.filter((item) => {
     const matchesSearch =
       item.request.toLowerCase().includes(search.toLowerCase()) ||

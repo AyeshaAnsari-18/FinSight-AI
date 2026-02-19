@@ -1,5 +1,5 @@
 const ControlEvidence = () => {
-  // Dummy data for control evidence
+  
   const evidenceData = [
     { control: "Access Control", evidenceType: "Screenshot", status: "Verified" },
     { control: "Segregation of Duties", evidenceType: "Report", status: "Pending" },

@@ -1,5 +1,5 @@
 const RedFlags = () => {
-  // Dummy data for red flags (7 as on dashboard)
+  
   const redFlags = [
     { id: 1, department: "Finance", issue: "Unauthorized transaction", date: "2025-11-20" },
     { id: 2, department: "HR", issue: "Incomplete employee records", date: "2025-11-18" },

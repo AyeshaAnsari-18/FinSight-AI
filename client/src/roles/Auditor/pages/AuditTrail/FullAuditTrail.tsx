@@ -11,7 +11,7 @@ const FullAuditTrail = () => {
     { id: 3, action: "Reviewed Task", user: "Mark Taylor", timestamp: "2025-11-20 01:15 PM", status: "Completed" },
   ];
 
-  // Filtered Data
+  
   const filteredData = auditData.filter((entry) => {
     const matchesSearch =
       entry.action.toLowerCase().includes(search.toLowerCase()) ||

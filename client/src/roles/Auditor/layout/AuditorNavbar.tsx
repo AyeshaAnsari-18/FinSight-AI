@@ -20,7 +20,7 @@ const AuditorNavbar = () => {
 
   const handleSearch = () => {
     if (!search) return;
-    // Navigate to auditor search page with query
+    
     navigate(`/auditor/search?q=${encodeURIComponent(search)}`);
   };
 
@@ -135,7 +135,7 @@ const AuditorNavbar = () => {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => {
-                // clear auth
+                
                 localStorage.removeItem("token");
                 localStorage.removeItem("user");
 

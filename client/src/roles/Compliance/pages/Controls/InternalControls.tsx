@@ -1,5 +1,5 @@
 const InternalControls = () => {
-  // Dummy data for internal controls
+  
   const internalControls = [
     { control: "Access Management", owner: "Alice Smith", status: "Active" },
     { control: "Change Management", owner: "John Doe", status: "Active" },

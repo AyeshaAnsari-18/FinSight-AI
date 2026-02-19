@@ -1,5 +1,5 @@
 const ComplianceReports = () => {
-  // Dummy compliance report data
+  
   const reports = [
     { id: 1, title: "Quarterly IT Compliance", department: "IT", status: "Completed", date: "2025-11-15" },
     { id: 2, title: "HR Policy Review", department: "HR", status: "In Progress", date: "2025-11-18" },

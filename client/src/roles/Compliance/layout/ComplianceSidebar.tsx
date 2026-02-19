@@ -19,7 +19,7 @@ interface MenuItem {
   children?: { label: string; path: string }[];
 }
 
-// Sidebar menu for Compliance
+
 export const complianceMenu: MenuItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/compliance" },
   { label: "Dept Clearance Panel", icon: CheckCircle, path: "/compliance/dept-clearance" },

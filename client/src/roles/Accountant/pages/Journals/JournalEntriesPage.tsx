@@ -1,48 +1,54 @@
 import { useState } from "react";
+import { useJournals } from "../../hooks/useJournals";
 
 const JournalEntriesPage = () => {
-  const initialData = [
-    { id: "JE-001", date: "2024-01-02", description: "Payroll Payment", debit: 5000, credit: 5000, status: "Posted" },
-    { id: "JE-002", date: "2024-01-05", description: "Vendor Invoice #123", debit: 1200, credit: 1200, status: "Draft" },
-    { id: "JE-003", date: "2024-01-10", description: "Accrual Adjustment", debit: 900, credit: 900, status: "Posted" },
-    { id: "JE-004", date: "2024-01-12", description: "Tax Adjustment", debit: 450, credit: 450, status: "Pending" },
-  ];
+  
+  const { journals, loading, error } = useJournals();
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [sortBy, setSortBy] = useState("date");
 
+  
   const statusColor = (status: string) => {
-    switch (status) {
-      case "Posted":
+    switch (status.toUpperCase()) {
+      case "POSTED":
         return "bg-green-100 text-green-700";
-      case "Draft":
+      case "DRAFT":
         return "bg-yellow-100 text-yellow-700";
-      case "Pending":
+      case "FLAGGED": 
+        return "bg-red-100 text-red-700";
+      case "PENDING":
         return "bg-blue-100 text-blue-700";
       default:
         return "bg-gray-100 text-gray-700";
     }
   };
 
-  // Filter and search
-  let filteredData = initialData.filter(
+  
+  if (loading) return <div className="p-10 text-center">Loading Financial Data...</div>;
+  if (error) return <div className="p-10 text-center text-red-500">{error}</div>;
+
+  
+  let filteredData = journals.filter(
     (item) =>
       item.description.toLowerCase().includes(search.toLowerCase()) ||
-      item.id.toLowerCase().includes(search.toLowerCase())
+      item.reference.toLowerCase().includes(search.toLowerCase()) 
   );
 
   if (statusFilter !== "All") {
-    filteredData = filteredData.filter((i) => i.status === statusFilter);
+    
+    filteredData = filteredData.filter((i) => i.status.toUpperCase() === statusFilter.toUpperCase());
   }
 
-  // Sorting
+  
   if (sortBy === "date") {
     filteredData = filteredData.sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     );
   } else if (sortBy === "debit") {
-    filteredData = filteredData.sort((a, b) => b.debit - a.debit);
+    
+    filteredData = filteredData.sort((a, b) => Number(b.debit) - Number(a.debit));
   }
 
   return (
@@ -68,10 +74,10 @@ const JournalEntriesPage = () => {
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
         >
-          <option>All</option>
-          <option>Posted</option>
-          <option>Draft</option>
-          <option>Pending</option>
+          <option value="All">All</option>
+          <option value="POSTED">Posted</option>
+          <option value="DRAFT">Draft</option>
+          <option value="FLAGGED">Flagged (AI)</option>
         </select>
 
         <select
@@ -89,7 +95,7 @@ const JournalEntriesPage = () => {
         <table className="min-w-full table-auto border-collapse">
           <thead>
             <tr className="bg-gray-100">
-              <th className="border px-4 py-2 text-left">Entry ID</th>
+              <th className="border px-4 py-2 text-left">Ref ID</th>
               <th className="border px-4 py-2 text-left">Date</th>
               <th className="border px-4 py-2 text-left">Description</th>
               <th className="border px-4 py-2 text-right">Debit ($)</th>
@@ -100,11 +106,20 @@ const JournalEntriesPage = () => {
           <tbody>
             {filteredData.map((entry) => (
               <tr key={entry.id} className="hover:bg-gray-50">
-                <td className="border px-4 py-2">{entry.id}</td>
-                <td className="border px-4 py-2">{entry.date}</td>
-                <td className="border px-4 py-2">{entry.description}</td>
-                <td className="border px-4 py-2 text-right">{entry.debit.toFixed(2)}</td>
-                <td className="border px-4 py-2 text-right">{entry.credit.toFixed(2)}</td>
+                {/* Display Reference instead of UUID for readability */}
+                <td className="border px-4 py-2 text-sm">{entry.reference || entry.id.substring(0,8)}</td>
+                <td className="border px-4 py-2 text-sm">
+                  {new Date(entry.date).toLocaleDateString()}
+                </td>
+                <td className="border px-4 py-2">
+                  {entry.description}
+                  {/* Visual indicator for AI Risk */}
+                  {entry.riskScore && entry.riskScore > 50 && (
+                     <span className="ml-2 text-xs text-red-500 font-bold">⚠️ Risk: {entry.riskScore}%</span>
+                  )}
+                </td>
+                <td className="border px-4 py-2 text-right">{Number(entry.debit).toFixed(2)}</td>
+                <td className="border px-4 py-2 text-right">{Number(entry.credit).toFixed(2)}</td>
                 <td className="border px-4 py-2 text-center">
                   <span className={`px-3 py-1 text-sm rounded-full ${statusColor(entry.status)}`}>
                     {entry.status}

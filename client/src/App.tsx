@@ -1,139 +1,115 @@
-{/*}
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import AccountantLayout from "./roles/Accountant/layout/AccountantLayout";
-import AccountantRoutes from "./roles/Accountant/routes/AccountantRoutes";
-
-import AuditorLayout from "./roles/Auditor/layout/AuditorLayout";
-import AuditorRoutes from "./roles/Auditor/routes/AuditorRoutes";
-
-import ComplianceLayout from "./roles/Compliance/layout/ComplianceLayout"
-import ComplianceRoutes from "./roles/Compliance/routes/ComplianceRoutes";
-
-import ManagerLayout from "./roles/Manager/layout/ManagerLayout";
-import ManagerRoutes from "./roles/Manager/routes/ManagerRoutes";
-
-
-type UserRole = "accountant" | "auditor" | "manager" | "compliance";
-
-function App() {
-  const role: UserRole = "manager";
-
-  const isAccountant = (r: UserRole) => r === "accountant";
-  const isAuditor = (r: UserRole) => r === "auditor";
-  const isCompliance = (r: UserRole) => r === "compliance";
-  const isManager = (r: UserRole) => r === "manager";
-
-  return (
-    <BrowserRouter>
-      <Routes>
-
-        {/* ACCOUNTANT */}
-        {/*}
-        {isAccountant(role) && (
-          <Route path="/*" element={<AccountantLayout />}>
-            <Route path="accountant/*" element={<AccountantRoutes />} />
-          </Route>
-        )}
-
-        {/* AUDITOR */}
-        {/*}
-        {isAuditor(role) && (
-          <Route path="/*" element={<AuditorLayout />}>
-            <Route path="auditor/*" element={<AuditorRoutes />} />
-          </Route>
-        )}
-
-        {/* COMPLIANCE */}
-        {/*}
-        {isCompliance(role) && (
-          <Route path="/*" element={<ComplianceLayout />}>
-            <Route path="compliance/*" element={<ComplianceRoutes />} />
-          </Route>
-        )}
-
-        {/* MANAGER */}
-        {/*}
-        {isManager(role) && (
-          <Route path="/*" element={<ManagerLayout />}>
-            <Route path="manager/*" element={<ManagerRoutes />} />
-          </Route>
-        )}
-        
-      </Routes>
-    </BrowserRouter>
-  );
-}
-
-export default App;
-*/}
-
+import { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import Cookies from "js-cookie";
+
+
+import { setCredentials, decodeToken, setLoading } from "./store/authSlice";
+import { type RootState } from "./store/store";
+import api from "./lib/api";
+
+
 import Login from "./Pages/login/Page";
 
-// Layouts
+
 import AccountantLayout from "./roles/Accountant/layout/AccountantLayout";
 import AuditorLayout from "./roles/Auditor/layout/AuditorLayout";
 import ComplianceLayout from "./roles/Compliance/layout/ComplianceLayout";
 import ManagerLayout from "./roles/Manager/layout/ManagerLayout";
 
-// Role Routes
+
 import AccountantRoutes from "./roles/Accountant/routes/AccountantRoutes";
 import AuditorRoutes from "./roles/Auditor/routes/AuditorRoutes";
 import ComplianceRoutes from "./roles/Compliance/routes/ComplianceRoutes";
 import ManagerRoutes from "./roles/Manager/routes/ManagerRoutes";
 
-// Manager extra pages
+
 import FiscalCloseMain from "./roles/Manager/pages/FiscalClose/FiscalCloseMain";
 
 const App = () => {
-  const roleId = parseInt(localStorage.getItem("role_id") || "0");
+  const dispatch = useDispatch();
+  const { isAuthenticated, loading, user } = useSelector((state: RootState) => state.auth);
 
-  // Map role_id → root path
-  const rolePathMap: Record<number, string> = {
-    1: "accountant",
-    2: "manager",
-    3: "auditor",
-    4: "compliance",
-  };
+  
+  useEffect(() => {
+    const restoreSession = async () => {
+      const refreshToken = Cookies.get("refreshToken");
+      
+      
+      if (refreshToken && !isAuthenticated) {
+        try {
+          const { data } = await api.post("/auth/refresh", {}, {
+            headers: { Authorization: `Bearer ${refreshToken}` }
+          });
+          
+          const decodedUser = decodeToken(data.access_token);
+          if (decodedUser) {
+            dispatch(setCredentials({
+              user: decodedUser,
+              accessToken: data.access_token,
+              refreshToken: data.refresh_token
+            }));
+          }
+        } catch (error) {
+          console.log("Session expired or invalid: ", error);
+          Cookies.remove("refreshToken");
+        }
+      }
+      dispatch(setLoading(false));
+    };
 
-  const path = rolePathMap[roleId] || "";
+    restoreSession();
+  }, [dispatch, isAuthenticated]);
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center text-[#3b165f]">Loading FinSight AI...</div>;
+  }
 
   return (
     <Router>
       <Routes>
-
-        {/* LOGIN PAGE */}
-        <Route path="/login" element={<Login />} />
+        
+        {/* LOGIN PAGE - Redirect to role dashboard if already logged in */}
+        <Route 
+          path="/login" 
+          element={
+            !isAuthenticated ? <Login /> : (
+               
+               user?.role === 'ACCOUNTANT' ? <Navigate to="/accountant" /> :
+               user?.role === 'MANAGER' ? <Navigate to="/manager" /> :
+               user?.role === 'AUDITOR' ? <Navigate to="/auditor" /> :
+               user?.role === 'COMPLIANCE' ? <Navigate to="/compliance" /> :
+               <Navigate to="/login" />
+            )
+          } 
+        />
 
         {/* ROOT REDIRECT */}
         <Route
           path="/"
-          element={path ? <Navigate to={`/${path}`} /> : <Navigate to="/login" />}
+          element={<Navigate to="/login" />}
         />
 
-        {/* ACCOUNTANT ROUTES */}
-        <Route path="/accountant/*" element={<AccountantLayout />}>
+        {/* 🛡️ PROTECTED ROUTES (Only accessible if isAuthenticated) */}
+        
+        {/* ACCOUNTANT */}
+        <Route path="/accountant/*" element={isAuthenticated && user?.role === 'ACCOUNTANT' ? <AccountantLayout /> : <Navigate to="/login" />}>
           <Route path="*" element={<AccountantRoutes />} />
         </Route>
 
-        {/* MANAGER ROUTES */}
-        <Route path="/manager/*" element={<ManagerLayout />}>
-
-          {/* Manager main routes */}
+        {/* MANAGER */}
+        <Route path="/manager/*" element={isAuthenticated && user?.role === 'MANAGER' ? <ManagerLayout /> : <Navigate to="/login" />}>
           <Route path="*" element={<ManagerRoutes />} />
-
-          {/* Specific fiscal close page */}
           <Route path="fiscal-close" element={<FiscalCloseMain />} />
-
         </Route>
 
-        {/* AUDITOR ROUTES */}
-        <Route path="/auditor/*" element={<AuditorLayout />}>
+        {/* AUDITOR */}
+        <Route path="/auditor/*" element={isAuthenticated && user?.role === 'AUDITOR' ? <AuditorLayout /> : <Navigate to="/login" />}>
           <Route path="*" element={<AuditorRoutes />} />
         </Route>
 
-        {/* COMPLIANCE ROUTES */}
-        <Route path="/compliance/*" element={<ComplianceLayout />}>
+        {/* COMPLIANCE */}
+        <Route path="/compliance/*" element={isAuthenticated && user?.role === 'COMPLIANCE' ? <ComplianceLayout /> : <Navigate to="/login" />}>
           <Route path="*" element={<ComplianceRoutes />} />
         </Route>
 

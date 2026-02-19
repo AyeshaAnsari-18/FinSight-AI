@@ -1,43 +1,63 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useEffect, useState } from "react";
 import KPIWidget from "../../../../components/Dashboard/KPIWidget";
 import TaskSummary from "../../../../components/Dashboard/TaskSummary";
 import ReconcileStatusCard from "../../../../components/Dashboard/ReconcileStatusCard";
 import AlertsSummary from "../../../../components/Dashboard/AlertsSummary";
+import { accountantApi } from "../../services/accountant.api";
 
 const AccountantDashboard = () => {
-  // Dummy data (replace with API later)
-  const pendingTasks = [
-    { title: "Accrual Adjustments", count: 5, path: "/accountant/tasks/accruals" },
-    { title: "Tax Adjustments", count: 2, path: "/accountant/tasks/tax" },
-  ];
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const alerts: { id: string; message: string; severity: "high" | "medium" | "low" }[] = [
-    { id: "1", message: "Invoice #123 missing GL code", severity: "high" },
-    { id: "2", message: "Bank reconciliation variance detected", severity: "medium" },
-    { id: "3", message: "Vendor payment delay", severity: "low" },
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const data = await accountantApi.getDashboardStats();
+        setStats(data);
+      } catch (error) {
+        console.error("Failed to load dashboard stats", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadStats();
+  }, []);
+
+  if (loading) return <div className="p-6">Loading Dashboard...</div>;
+
+  
+  const kpi = stats?.kpi || { totalPendingTasks: 0, accrualTasks: 0, taxTasks: 0, pendingJournals: 0, validationFailures: 0 };
+  const alertList = stats?.alerts || [];
+
+  
+  const pendingTasksList = [
+    { title: "Accrual Adjustments", count: kpi.accrualTasks, path: "/accountant/tasks/accruals" },
+    { title: "Tax Adjustments", count: kpi.taxTasks, path: "/accountant/tasks/tax" },
   ];
 
   return (
     <div className="space-y-6">
-      {/* KPIs */}
+      {/* KPI Section */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        <KPIWidget title="Pending Tasks" value={7} />
-        <KPIWidget title="Bank Reconciliations" value={3} />
-        <KPIWidget title="Vendor Reconciliations" value={5} />
-        <KPIWidget title="Alerts" value={3} />
-        <KPIWidget title="Journal Validation Failures" value={1} />
+        <KPIWidget title="Pending Tasks" value={kpi.totalPendingTasks} />
+        <KPIWidget title="Pending Journals" value={kpi.pendingJournals} /> 
+        <KPIWidget title="Bank Reconciliations" value={kpi.bankReconciliations} />
+        <KPIWidget title="Vendor Reconciliations" value={kpi.vendorReconciliations} />
+        <KPIWidget title="Risk Alerts" value={alertList.length} />
       </div>
 
-      {/* Pending Tasks & Reconciliation */}
+      {/* Charts & Summaries */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <TaskSummary tasks={pendingTasks} />
+        <TaskSummary tasks={pendingTasksList} />
         <div className="space-y-2">
-          <ReconcileStatusCard type="bank" pending={3} />
-          <ReconcileStatusCard type="vendor" pending={5} />
+          <ReconcileStatusCard type="bank" pending={kpi.bankReconciliations} />
+          <ReconcileStatusCard type="vendor" pending={kpi.vendorReconciliations} />
         </div>
       </div>
 
-      {/* Alerts */}
-      <AlertsSummary alerts={alerts} />
+      {/* Alerts Section */}
+      <AlertsSummary alerts={alertList} />
     </div>
   );
 };

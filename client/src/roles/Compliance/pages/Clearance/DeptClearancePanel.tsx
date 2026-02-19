@@ -1,5 +1,5 @@
 const DeptClearancePanel = () => {
-  // Dummy data for pending reviews
+  
   const pendingReviews = [
     { department: "Finance", reviewer: "Alice Smith", dueDate: "2025-11-25" },
     { department: "HR", reviewer: "John Doe", dueDate: "2025-11-27" },

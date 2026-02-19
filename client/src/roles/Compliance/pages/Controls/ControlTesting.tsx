@@ -1,5 +1,5 @@
 const ControlTesting = () => {
-  // Dummy data for control testing
+  
   const testingData = [
     { control: "Access Control", testedOn: "2025-11-20", result: "Pass" },
     { control: "Segregation of Duties", testedOn: "2025-11-18", result: "Fail" },

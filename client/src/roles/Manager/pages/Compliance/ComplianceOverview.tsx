@@ -1,9 +1,26 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState, useEffect } from "react";
+import { complianceApi } from "../../services/compliance.api";
+
 const ComplianceOverview = () => {
-  const complianceData = [
-    { id: 1, issue: "Policy Violation", dept: "Finance", status: "Open" },
-    { id: 2, issue: "Internal Control Gap", dept: "IT", status: "Resolved" },
-    { id: 3, issue: "Incomplete Documentation", dept: "HR", status: "Pending" },
-  ];
+  const [issues, setIssues] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchIssues = async () => {
+      try {
+        const data = await complianceApi.getIssues();
+        setIssues(data);
+      } catch (error) {
+        console.error("Failed to fetch compliance issues", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchIssues();
+  }, []);
+
+  if (loading) return <div className="p-6 text-[#0A2342] font-bold">Loading Compliance Data...</div>;
 
   return (
     <div className="p-6">
@@ -19,14 +36,21 @@ const ComplianceOverview = () => {
             </tr>
           </thead>
           <tbody>
-            {complianceData.map((item) => (
+            {issues.map((item) => (
               <tr key={item.id} className="hover:bg-gray-50">
                 <td className="p-2 border">{item.id}</td>
                 <td className="p-2 border">{item.issue}</td>
                 <td className="p-2 border">{item.dept}</td>
-                <td className="p-2 border">{item.status}</td>
+                <td className="p-2 border text-sm font-semibold">
+                  <span className={`px-2 py-1 rounded-full ${item.status === 'Resolved' ? 'bg-green-100 text-green-800' : item.status === 'Open' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    {item.status}
+                  </span>
+                </td>
               </tr>
             ))}
+             {issues.length === 0 && (
+              <tr><td colSpan={4} className="text-center p-4 text-gray-500">No compliance issues found.</td></tr>
+            )}
           </tbody>
         </table>
       </div>
