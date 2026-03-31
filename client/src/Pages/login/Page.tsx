@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Eye, EyeOff, User, Lock } from "lucide-react";
 import { useDispatch } from "react-redux";
 import api from "../../lib/api"; 
@@ -138,6 +138,12 @@ export default function Login() {
               {loading ? "Logging in..." : "Log in"}
             </button>
           </form>
+          <p className="text-center text-sm text-gray-500 mt-6">
+            Don't have an account?{" "}
+            <Link to="/signup" className="text-purple-600 hover:underline font-semibold cursor-pointer">
+              Sign up
+            </Link>
+          </p>
         </div>
 
         {/* RIGHT IMAGE */}

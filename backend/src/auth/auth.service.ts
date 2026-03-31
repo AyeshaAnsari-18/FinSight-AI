@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable prettier/prettier */
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -20,6 +21,7 @@ export class AuthService {
     try {
       const newUser = await this.prisma.user.create({
         data: {
+          name: dto.name,
           email: dto.email,
           password: hash,
           role: dto.role || 'ACCOUNTANT',

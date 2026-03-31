@@ -1,3 +1,4 @@
+// import Cookies from "js-cookie"
 import { useState } from "react";
 import type { ChangeEvent } from "react";
 import { Search, Bell, Plus, Upload, BookPlus } from "lucide-react";
@@ -13,7 +14,7 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from "../../../components/ui/avatar";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import api from "../../../lib/api"; 
+import api from "../../../lib/api";
 import { logOut } from "../../../store/authSlice";
 import { useDispatch } from "react-redux";
 

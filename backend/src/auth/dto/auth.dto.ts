@@ -9,6 +9,10 @@ import {
 import { UserRole } from '@prisma/client';
 
 export class AuthDto {
+  @IsString()
+  @IsOptional()
+  name?: string;
+
   @IsEmail()
   @IsNotEmpty()
   email!: string;

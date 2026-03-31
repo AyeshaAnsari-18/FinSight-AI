@@ -10,7 +10,7 @@ import api from "./lib/api";
 
 
 import Login from "./Pages/login/Page";
-
+import Signup from "./Pages/signup/Page";
 
 import AccountantLayout from "./roles/Accountant/layout/AccountantLayout";
 import AuditorLayout from "./roles/Auditor/layout/AuditorLayout";
@@ -68,7 +68,21 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        
+
+        {/* SIGNUP PAGE */}
+        <Route 
+          path="/signup" 
+          element={
+            !isAuthenticated ? <Signup /> : (
+               user?.role === 'ACCOUNTANT' ? <Navigate to="/accountant" /> :
+               user?.role === 'MANAGER' ? <Navigate to="/manager" /> :
+               user?.role === 'AUDITOR' ? <Navigate to="/auditor" /> :
+               user?.role === 'COMPLIANCE' ? <Navigate to="/compliance" /> :
+               <Navigate to="/login" />
+            )
+          } 
+        />
+
         {/* LOGIN PAGE - Redirect to role dashboard if already logged in */}
         <Route 
           path="/login" 
