@@ -105,7 +105,22 @@ const CopilotChat = () => {
                       : 'bg-white border border-gray-100 text-gray-800 shadow-sm rounded-bl-none'
                   }`}>
                   {msg.role === 'assistant' && <Bot className="w-4 h-4 mt-1 flex-shrink-0 text-blue-500" />}
-                  <div className="leading-relaxed whitespace-pre-wrap">{msg.content}</div>
+                  <div className="leading-relaxed whitespace-pre-wrap">
+                    <ReactMarkdown
+                      components={{
+                        h1: ({node, ...props}) => <h1 className="text-lg font-bold mt-3 mb-1" {...props} />,
+                        h2: ({node, ...props}) => <h2 className="text-base font-bold mt-3 mb-1" {...props} />,
+                        h3: ({node, ...props}) => <h3 className="text-sm font-bold mt-2 mb-1" {...props} />,
+                        p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                        strong: ({node, ...props}) => <strong className="font-extrabold" {...props} />,
+                        ul: ({node, ...props}) => <ul className="list-disc pl-5 mb-2" {...props} />,
+                        ol: ({node, ...props}) => <ol className="list-decimal pl-5 mb-2" {...props} />,
+                        li: ({node, ...props}) => <li className="mb-1" {...props} />,
+                      }}
+                    >
+                      {msg.content}
+                    </ReactMarkdown>
+                  </div>
                 </div>
               </div>
             ))}
