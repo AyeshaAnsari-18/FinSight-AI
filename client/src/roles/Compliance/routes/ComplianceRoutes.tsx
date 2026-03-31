@@ -12,6 +12,7 @@ import PolicyDetails from "../pages/Policies/PolicyDetails";
 import PolicyViolations from "../pages/Policies/PolicyViolations";
 import ComplianceReports from "../pages/Regulatory/ComplianceReports";
 import RegulatoryRequirements from "../pages/Regulatory/RegulatoryRequirements";
+import SearchPage from "../../../Pages/search/SearchPage";
 
 const ComplianceRoutes = () => {
   return (
@@ -29,6 +30,7 @@ const ComplianceRoutes = () => {
       <Route path="/reports" element={<ComplianceReports />} />
       <Route path="/regulatory-requirements" element={<RegulatoryRequirements />} />
       <Route path="/copilot" element={<ComplianceCopilot />} />
+      <Route path="/search" element={<SearchPage />} />
     </Routes>
   );
 };

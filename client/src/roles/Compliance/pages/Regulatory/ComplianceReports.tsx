@@ -1,38 +1,61 @@
+import { useState, useEffect } from "react";
+import { getCompliancePolicies } from "../../services/compliance.api";
+
 const ComplianceReports = () => {
-  
-  const reports = [
-    { id: 1, title: "Quarterly IT Compliance", department: "IT", status: "Completed", date: "2025-11-15" },
-    { id: 2, title: "HR Policy Review", department: "HR", status: "In Progress", date: "2025-11-18" },
-    { id: 3, title: "Finance Audit", department: "Finance", status: "Pending", date: "2025-11-20" },
-  ];
+  const [reports, setReports] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getCompliancePolicies().then(res => {
+      setReports(res.map((p: any) => ({
+        id: "REP-" + p.id.substring(0, 4).toUpperCase(),
+        title: `${p.title} Review Summary`,
+        department: p.category || "Organization",
+        generator: "System AI Engine",
+        generatedDate: new Date(p.createdAt).toISOString().split('T')[0],
+      })));
+      setLoading(false);
+    }).catch(err => {
+      console.error(err);
+      setLoading(false);
+    });
+  }, []);
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6 text-[#0A2342]">Compliance Reports</h1>
+      <h1 className="text-2xl font-bold mb-6 text-[#0A2342]">Available Compliance Reports</h1>
 
       <div className="bg-white p-4 rounded shadow hover:shadow-md transition">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="p-2 border">ID</th>
-              <th className="p-2 border">Title</th>
-              <th className="p-2 border">Department</th>
-              <th className="p-2 border">Status</th>
-              <th className="p-2 border">Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {reports.map((report) => (
-              <tr key={report.id} className="hover:bg-gray-50">
-                <td className="p-2 border">{report.id}</td>
-                <td className="p-2 border">{report.title}</td>
-                <td className="p-2 border">{report.department}</td>
-                <td className="p-2 border">{report.status}</td>
-                <td className="p-2 border">{report.date}</td>
+        {loading ? (
+           <div className="p-8 text-center text-gray-400">Loading generated reports suite...</div>
+        ) : (
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-200">
+                <th className="p-2 border">Report ID</th>
+                <th className="p-2 border">Report Identity</th>
+                <th className="p-2 border">Department Scope</th>
+                <th className="p-2 border">Origin Framework</th>
+                <th className="p-2 border">Date of Run</th>
+                <th className="p-2 border">Extract</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {reports.length > 0 ? reports.map((row) => (
+                <tr key={row.id} className="hover:bg-gray-50 transition">
+                  <td className="p-2 border">{row.id}</td>
+                  <td className="p-2 border">{row.title}</td>
+                  <td className="p-2 border">{row.department}</td>
+                  <td className="p-2 border">{row.generator}</td>
+                  <td className="p-2 border">{row.generatedDate}</td>
+                  <td className="p-2 border hover:underline cursor-pointer text-blue-600">Download .PDF</td>
+                </tr>
+              )) : (
+                 <tr><td colSpan={6} className="p-8 text-center text-gray-500">No active reports produced in system.</td></tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

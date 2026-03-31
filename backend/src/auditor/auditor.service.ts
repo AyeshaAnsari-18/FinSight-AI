@@ -3,14 +3,14 @@ import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class AuditorService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async getDashboardMetrics() {
     const journalCounts = await this.prisma.journalEntry.groupBy({
       by: ['status'],
       _count: { status: true },
     });
-    
+
     const flaggedJournals = journalCounts.find(j => j.status === 'FLAGGED')?._count.status || 0;
     const pendingJournals = journalCounts.find(j => j.status === 'DRAFT')?._count.status || 0;
 
@@ -34,7 +34,7 @@ export class AuditorService {
       take: 3,
       select: { flagReason: true, description: true }
     });
-    
+
     const alerts = recentAlertsObj.map(a => `${a.description}: ${a.flagReason}`);
     if (alerts.length === 0) alerts.push("System automatically checks for unusual transaction patterns.", "Unauthorized journal modification detected", "High variance in vendor reconciliation");
 
@@ -95,7 +95,7 @@ export class AuditorService {
     });
     let dbAuditors = nativeAuditors.map(u => u.name || u.email);
     if (dbAuditors.length === 0) dbAuditors = ['System Auditor'];
-    
+
     const risks = await this.prisma.riskControl.findMany({ orderBy: { id: 'desc' }, take: dbDepartments.length });
 
     return dbDepartments.map((dept, index) => {

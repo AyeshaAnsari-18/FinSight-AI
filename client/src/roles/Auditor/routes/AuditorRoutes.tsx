@@ -12,6 +12,7 @@ import ReconciliationIssues from "../pages/Reconciliations/ReconciliationIssues"
 import ReconciliationReview from "../pages/Reconciliations/ReconciliationReview";
 import TaskAuditView from "../pages/Tasks/TasksAuditView";
 import CopilotPage from "../pages/Copilot/AuditorCopilot";
+import SearchPage from "../../../Pages/search/SearchPage";
 
 const AuditorRoutes = () => {
   return (
@@ -29,6 +30,7 @@ const AuditorRoutes = () => {
       <Route path="reconciliations/review" element={<ReconciliationReview />} />
       <Route path="tasks/view" element={<TaskAuditView />} />
       <Route path="copilot" element={<CopilotPage />} />
+      <Route path="search" element={<SearchPage />} />
     </Routes>
   );
 };

@@ -19,6 +19,8 @@ import { ComplianceModule } from './compliance/compliance.module';
 import { ForecastModule } from './forecast/forecast.module';
 import { NarrativesModule } from './narratives/narratives.module';
 import { AuditorModule } from './auditor/auditor.module';
+import { CopilotModule } from './copilot/copilot.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -37,6 +39,8 @@ import { AuditorModule } from './auditor/auditor.module';
     ForecastModule,
     NarrativesModule,
     AuditorModule,
+    CopilotModule,
+    SearchModule,
   ],
   providers: [
     {

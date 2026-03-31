@@ -23,6 +23,11 @@ export class TasksController {
     return this.tasksService.create(createTaskDto);
   }
 
+  @Get()
+  findAll() {
+    return this.tasksService.findAll();
+  }
+
   @Get('me')
   findMyTasks(@GetCurrentUser('sub') userId: string) {
     return this.tasksService.findMyTasks(userId);

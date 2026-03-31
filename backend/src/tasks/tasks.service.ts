@@ -20,6 +20,13 @@ export class TasksService {
     });
   }
 
+  async findAll() {
+    return this.prisma.task.findMany({
+      orderBy: { dueDate: 'asc' },
+      include: { assignedTo: { select: { name: true, role: true } } }
+    });
+  }
+
   async findMyTasks(userId: string) {
     return this.prisma.task.findMany({
       where: { assignedToId: userId },
@@ -29,8 +36,8 @@ export class TasksService {
 
   async update(id: string, dto: UpdateTaskDto, userId: string) {
     const task = await this.prisma.task.findUnique({ where: { id } });
-    if (!task || task.assignedToId !== userId) {
-      throw new NotFoundException('Task not found or unauthorized');
+    if (!task) {
+      throw new NotFoundException('Task not found');
     }
 
     return this.prisma.task.update({

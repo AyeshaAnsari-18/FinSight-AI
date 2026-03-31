@@ -23,6 +23,7 @@ model User {
   tasksAssigned    Task[]    @relation("AssignedTo")
   auditLogs        AuditLog[]
   uploads          Document[]
+  chatMessages     ChatMessage[]
 }
 
 enum UserRole {
@@ -166,3 +167,13 @@ model FiscalClose {
   
   updatedAt    DateTime @updatedAt
 }
+
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  role      String   
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+}

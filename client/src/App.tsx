@@ -25,6 +25,9 @@ import ManagerRoutes from "./roles/Manager/routes/ManagerRoutes";
 
 
 import FiscalCloseMain from "./roles/Manager/pages/FiscalClose/FiscalCloseMain";
+import CopilotChat from "./components/Copilot/CopilotChat";
+import { Toaster } from "react-hot-toast";
+import ProfilePage from "./Pages/profile/ProfilePage";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -104,6 +107,16 @@ const App = () => {
           element={<Navigate to="/login" />}
         />
 
+        {/* Global Profile & Settings */}
+        <Route 
+          path="/profile" 
+          element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" />} 
+        />
+        <Route 
+          path="/settings" 
+          element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" />} 
+        />
+
         {/* 🛡️ PROTECTED ROUTES (Only accessible if isAuthenticated) */}
         
         {/* ACCOUNTANT */}
@@ -128,6 +141,8 @@ const App = () => {
         </Route>
 
       </Routes>
+      <CopilotChat />
+      <Toaster position="top-right" />
     </Router>
   );
 };

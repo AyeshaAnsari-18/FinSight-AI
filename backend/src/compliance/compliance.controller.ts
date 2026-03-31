@@ -17,4 +17,19 @@ export class ComplianceController {
   findAll() {
     return this.complianceService.findAllIssues();
   }
+
+  @Get('controls')
+  getControls() {
+    return this.complianceService.getControls();
+  }
+
+  @Get('policies')
+  getPolicies() {
+    return this.complianceService.getPolicies();
+  }
+
+  @Get('monitoring')
+  getMonitoring() {
+    return this.complianceService.getMonitoring();
+  }
 }

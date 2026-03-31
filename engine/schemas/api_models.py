@@ -19,3 +19,9 @@ class FiscalCloseInput(BaseModel):
 
 class ForecastInput(BaseModel):
     historical_data: list # List of dicts: {month: "YYYY-MM", revenue: float, expenses: float}
+
+class CopilotInput(BaseModel):
+    role: str
+    message: str
+    context: str
+    history: list # list of dicts: {role: "user" | "assistant", content: str}

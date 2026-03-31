@@ -18,15 +18,38 @@ export class ComplianceService {
   }
 
   async findAllIssues() {
+    return this.getControls();
+  }
+
+  async getControls() {
     const risks = await this.prisma.riskControl.findMany({
       orderBy: { id: 'desc' },
     });
+    return risks.map((r) => ({
+      id: r.id.substring(0, 8).toUpperCase(),
+      control: r.riskName,
+      desc: r.controlDesc,
+      status: r.status,
+      tested: r.lastTested ? r.lastTested.toISOString().split('T')[0] : 'Not tested',
+    }));
+  }
 
-    return risks.map((risk) => ({
-      id: risk.id.substring(0, 8).toUpperCase(),
-      issue: risk.riskName,
-      dept: 'Enterprise',
-      status: risk.status || 'Open',
+  async getPolicies() {
+    return this.prisma.policy.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getMonitoring() {
+    const groupedRoles = await this.prisma.user.groupBy({ by: ['role'] });
+    const flaggedJournals = await this.prisma.journalEntry.count({ where: { status: 'FLAGGED' }});
+    
+    let defaultDepts = groupedRoles.map(g => g.role.charAt(0) + g.role.slice(1).toLowerCase());
+    if (defaultDepts.length === 0) defaultDepts = ["Finance", "HR", "Operations"];
+
+    return defaultDepts.map((dept, i) => ({
+      department: dept,
+      issues: Math.floor(flaggedJournals / (defaultDepts.length)) + (i % 3),
     }));
   }
 }

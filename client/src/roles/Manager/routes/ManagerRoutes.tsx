@@ -10,6 +10,7 @@ import ForecastScenarios from "../pages/Forecast/ForecastScenarios";
 import WhatIfAnalysis from "../pages/Forecast/WhatIfAnalysis";
 import NarrativeReports from "../pages/Narratives/NarrativeReports";
 import ManagerTasks from "../pages/Tasks/ManagerTasks";
+import SearchPage from "../../../Pages/search/SearchPage";
 
 const ManagerRoutes = () => {
   return (
@@ -25,6 +26,7 @@ const ManagerRoutes = () => {
       <Route path="/whatIfAnalysis" element={<WhatIfAnalysis />} />
       <Route path="/narrativeReports" element={<NarrativeReports />} />
       <Route path="/managerTasks" element={<ManagerTasks />} />
+      <Route path="/search" element={<SearchPage />} />
     </Routes>
   );
 };

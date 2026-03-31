@@ -8,10 +8,11 @@ from agents.fiscal_agent import run_real_fiscal_analysis
 from agents.reconcile_agent import run_reconciliation_analysis
 from agents.fiscal_close_orchestrator import run_fiscal_orchestration
 from agents.forecasting_agent import run_forecast_prediction, run_what_if_analysis
+from agents.copilot_agent import run_copilot_rag
 
 # Import Pydantic Schemas (Best Practice)
 from schemas.api_models import ForecastInput
-from schemas.api_models import JournalInput, ReconcileInput, FiscalCloseInput
+from schemas.api_models import JournalInput, ReconcileInput, FiscalCloseInput, CopilotInput
 
 app = FastAPI(title="FinSight AI Orchestrator")
 
@@ -54,3 +55,8 @@ async def extract_document(file: UploadFile = File(...)):
     file_bytes = await file.read()
     result = run_ocr_extraction(file_bytes, file.filename)
     return result
+
+@app.post("/copilot/rag")
+async def copilot_rag(data: CopilotInput):
+    result = run_copilot_rag(data.role, data.message, data.context, data.history)
+    return {"reply": result}

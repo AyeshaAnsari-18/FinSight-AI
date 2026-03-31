@@ -10,6 +10,7 @@ import JournalEntriesPage from "../pages/Journals/JournalEntriesPage";
 import AlertsPage from "../pages/Alerts/AlertsPage";
 import MyReportsPage from "../pages/Reports/MyReportsPage";
 import CopilotPage from "../pages/Copilot/CopilotPage";
+import SearchPage from "../../../Pages/search/SearchPage";
 
 const AccountantRoutes = () => {
   return (
@@ -24,6 +25,7 @@ const AccountantRoutes = () => {
       <Route path="tasks/tax" element={<TaxAdjustmentPage />} />
       <Route path="reconcile/bank" element={<BankReconcilePage />} />
       <Route path="reconcile/vendor" element={<VendorReconcilePage />} />
+      <Route path="search" element={<SearchPage />} />
     </Routes>
   );
 };
