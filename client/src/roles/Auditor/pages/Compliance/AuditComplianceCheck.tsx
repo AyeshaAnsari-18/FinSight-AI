@@ -1,39 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CheckCircle } from "lucide-react";
+import { getAuditorCompliance } from "../../services/auditor.api";
 
 const AuditComplianceCheck = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [complianceData, setComplianceData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  
-  const complianceData = [
-    {
-      id: 1,
-      policy: "Data Privacy Policy",
-      auditor: "John Doe",
-      department: "IT",
-      lastChecked: "2025-11-22",
-      status: "Compliant",
-    },
-    {
-      id: 2,
-      policy: "Financial Reporting Standards",
-      auditor: "Jane Smith",
-      department: "Finance",
-      lastChecked: "2025-11-21",
-      status: "Pending",
-    },
-    {
-      id: 3,
-      policy: "Vendor Approval Policy",
-      auditor: "Mark Taylor",
-      department: "Procurement",
-      lastChecked: "2025-11-20",
-      status: "Non-Compliant",
-    },
-  ];
+  useEffect(() => {
+    getAuditorCompliance()
+      .then((res) => {
+        setComplianceData(res);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
 
-  
   const filteredData = complianceData.filter((item) => {
     const matchesSearch =
       item.policy.toLowerCase().includes(search.toLowerCase()) ||
@@ -74,48 +60,52 @@ const AuditComplianceCheck = () => {
 
       {/* Compliance Table */}
       <div className="bg-white shadow rounded overflow-x-auto">
-        <table className="min-w-full table-auto">
-          <thead className="bg-[#0A2342] text-white">
-            <tr>
-              <th className="py-3 px-4 text-left">ID</th>
-              <th className="py-3 px-4 text-left">Policy</th>
-              <th className="py-3 px-4 text-left">Auditor</th>
-              <th className="py-3 px-4 text-left">Department</th>
-              <th className="py-3 px-4 text-left">Last Checked</th>
-              <th className="py-3 px-4 text-left">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.length > 0 ? (
-              filteredData.map((item) => (
-                <tr key={item.id} className="border-b hover:bg-gray-100 transition">
-                  <td className="py-2 px-4">{item.id}</td>
-                  <td className="py-2 px-4">{item.policy}</td>
-                  <td className="py-2 px-4">{item.auditor}</td>
-                  <td className="py-2 px-4">{item.department}</td>
-                  <td className="py-2 px-4">{item.lastChecked}</td>
-                  <td
-                    className={`py-2 px-4 font-semibold ${
-                      item.status === "Compliant"
-                        ? "text-green-600"
-                        : item.status === "Pending"
-                        ? "text-yellow-600"
-                        : "text-red-600"
-                    }`}
-                  >
-                    {item.status}
+        {loading ? (
+          <div className="p-12 flex justify-center text-gray-400">Loading compliance data...</div>
+        ) : (
+          <table className="min-w-full table-auto">
+            <thead className="bg-[#0A2342] text-white">
+              <tr>
+                <th className="py-3 px-4 text-left">ID</th>
+                <th className="py-3 px-4 text-left">Policy</th>
+                <th className="py-3 px-4 text-left">Auditor</th>
+                <th className="py-3 px-4 text-left">Department</th>
+                <th className="py-3 px-4 text-left">Last Checked</th>
+                <th className="py-3 px-4 text-left">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredData.length > 0 ? (
+                filteredData.map((item) => (
+                  <tr key={item.id} className="border-b hover:bg-gray-100 transition">
+                    <td className="py-2 px-4">{item.id}</td>
+                    <td className="py-2 px-4">{item.policy}</td>
+                    <td className="py-2 px-4">{item.auditor}</td>
+                    <td className="py-2 px-4">{item.department}</td>
+                    <td className="py-2 px-4">{item.lastChecked}</td>
+                    <td
+                      className={`py-2 px-4 font-semibold ${
+                        item.status === "Compliant"
+                          ? "text-green-600"
+                          : item.status === "Pending"
+                          ? "text-yellow-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {item.status}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={6} className="py-4 text-center text-gray-500">
+                    No records found.
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={6} className="py-4 text-center text-gray-500">
-                  No records found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* Pagination */}

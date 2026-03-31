@@ -18,6 +18,7 @@ import { AuditTrailModule } from './audit-trail/audit-trail.module';
 import { ComplianceModule } from './compliance/compliance.module';
 import { ForecastModule } from './forecast/forecast.module';
 import { NarrativesModule } from './narratives/narratives.module';
+import { AuditorModule } from './auditor/auditor.module';
 
 @Module({
   imports: [
@@ -35,11 +36,12 @@ import { NarrativesModule } from './narratives/narratives.module';
     ComplianceModule,
     ForecastModule,
     NarrativesModule,
+    AuditorModule,
   ],
   providers: [
     {
       provide: APP_GUARD,
-      useClass: AtGuard, 
+      useClass: AtGuard,
     },
   ],
 })

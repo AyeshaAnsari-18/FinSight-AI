@@ -1,15 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Book } from "lucide-react";
+import { getJournals } from "../../services/auditor.api";
 
 const JournalsExceptions = () => {
   const [search, setSearch] = useState("");
   const [severityFilter, setSeverityFilter] = useState("");
+  const [exceptionsData, setExceptionsData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const exceptionsData = [
-    { id: 1, journal: "Sales Journal", issue: "Duplicate entry", user: "John Doe", date: "2025-11-22", severity: "High" },
-    { id: 2, journal: "Purchase Journal", issue: "Incorrect amount", user: "Jane Smith", date: "2025-11-21", severity: "Medium" },
-    { id: 3, journal: "Cash Receipts Journal", issue: "Missing entry", user: "Mark Taylor", date: "2025-11-20", severity: "High" },
-  ];
+  useEffect(() => {
+    getJournals()
+      .then((res) => {
+        const exceptions = res.filter((j: any) => j.status === 'FLAGGED' || j.status === 'REJECTED');
+        const mappedData = exceptions.map((j: any) => ({
+          id: j.id.substring(0, 6).toUpperCase(),
+          journal: j.description || "System Journal",
+          issue: j.flagReason || "Validation Error",
+          user: j.reference || "Unknown",
+          date: new Date(j.date).toISOString().split('T')[0],
+          severity: j.riskScore && j.riskScore > 80 ? "High" : "Medium",
+        }));
+        setExceptionsData(mappedData);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
 
   const filteredData = exceptionsData.filter((item) => {
     const matchesSearch =
@@ -51,46 +69,50 @@ const JournalsExceptions = () => {
 
       {/* Table */}
       <div className="bg-white shadow rounded overflow-x-auto">
-        <table className="min-w-full table-auto">
-          <thead className="bg-[#0A2342] text-white">
-            <tr>
-              <th className="py-3 px-4 text-left">ID</th>
-              <th className="py-3 px-4 text-left">Journal</th>
-              <th className="py-3 px-4 text-left">Issue</th>
-              <th className="py-3 px-4 text-left">User</th>
-              <th className="py-3 px-4 text-left">Date</th>
-              <th className="py-3 px-4 text-left">Severity</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.length > 0 ? (
-              filteredData.map((item) => (
-                <tr key={item.id} className="border-b hover:bg-gray-100 transition">
-                  <td className="py-2 px-4">{item.id}</td>
-                  <td className="py-2 px-4">{item.journal}</td>
-                  <td className="py-2 px-4">{item.issue}</td>
-                  <td className="py-2 px-4">{item.user}</td>
-                  <td className="py-2 px-4">{item.date}</td>
-                  <td
-                    className={`py-2 px-4 font-semibold ${
-                      item.severity === "High"
-                        ? "text-red-600"
-                        : item.severity === "Medium"
-                        ? "text-yellow-600"
-                        : "text-green-600"
-                    }`}
-                  >
-                    {item.severity}
-                  </td>
-                </tr>
-              ))
-            ) : (
+        {loading ? (
+          <div className="p-12 flex justify-center text-gray-400">Loading journal exceptions...</div>
+        ) : (
+          <table className="min-w-full table-auto">
+            <thead className="bg-[#0A2342] text-white">
               <tr>
-                <td colSpan={6} className="py-4 text-center text-gray-500">No records found.</td>
+                <th className="py-3 px-4 text-left">ID</th>
+                <th className="py-3 px-4 text-left">Journal</th>
+                <th className="py-3 px-4 text-left">Issue</th>
+                <th className="py-3 px-4 text-left">User</th>
+                <th className="py-3 px-4 text-left">Date</th>
+                <th className="py-3 px-4 text-left">Severity</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredData.length > 0 ? (
+                filteredData.map((item) => (
+                  <tr key={item.id} className="border-b hover:bg-gray-100 transition">
+                    <td className="py-2 px-4">{item.id}</td>
+                    <td className="py-2 px-4">{item.journal}</td>
+                    <td className="py-2 px-4">{item.issue}</td>
+                    <td className="py-2 px-4">{item.user}</td>
+                    <td className="py-2 px-4">{item.date}</td>
+                    <td
+                      className={`py-2 px-4 font-semibold ${
+                        item.severity === "High"
+                          ? "text-red-600"
+                          : item.severity === "Medium"
+                          ? "text-yellow-600"
+                          : "text-green-600"
+                      }`}
+                    >
+                      {item.severity}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={6} className="py-4 text-center text-gray-500">No records found.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

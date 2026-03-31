@@ -1,18 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CheckCircle } from "lucide-react";
+import { getTasks } from "../../services/auditor.api";
 
 const TaskAuditView = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [tasksData, setTasksData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  
-  const tasksData = [
-    { id: 1, task: "Accrual Adjustments", assignedTo: "John Doe", department: "Finance", dueDate: "2025-11-25", status: "Completed" },
-    { id: 2, task: "Tax Adjustments", assignedTo: "Jane Smith", department: "Finance", dueDate: "2025-11-28", status: "Pending" },
-    { id: 3, task: "Bank Reconciliation Review", assignedTo: "Mark Taylor", department: "Accounts Payable", dueDate: "2025-11-24", status: "Completed" },
-  ];
+  useEffect(() => {
+    getTasks()
+      .then((res) => {
+        const mappedData = res.map((t: any) => ({
+          id: t.id.substring(0, 6).toUpperCase(),
+          task: t.title,
+          assignedTo: t.assignedToId || "Unassigned",
+          department: "Operations",
+          dueDate: t.dueDate ? new Date(t.dueDate).toISOString().split('T')[0] : "No Due Date",
+          status: t.status === 'DONE' ? 'Completed' : 'Pending',
+        }));
+        setTasksData(mappedData);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
 
-  
   const filteredData = tasksData.filter((item) => {
     const matchesSearch =
       item.task.toLowerCase().includes(search.toLowerCase()) ||
@@ -52,46 +67,50 @@ const TaskAuditView = () => {
 
       {/* Table */}
       <div className="bg-white shadow rounded overflow-x-auto">
-        <table className="min-w-full table-auto">
-          <thead className="bg-[#0A2342] text-white">
-            <tr>
-              <th className="py-3 px-4 text-left">ID</th>
-              <th className="py-3 px-4 text-left">Task</th>
-              <th className="py-3 px-4 text-left">Assigned To</th>
-              <th className="py-3 px-4 text-left">Department</th>
-              <th className="py-3 px-4 text-left">Due Date</th>
-              <th className="py-3 px-4 text-left">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.length > 0 ? (
-              filteredData.map((item) => (
-                <tr key={item.id} className="border-b hover:bg-gray-100 transition">
-                  <td className="py-2 px-4">{item.id}</td>
-                  <td className="py-2 px-4">{item.task}</td>
-                  <td className="py-2 px-4">{item.assignedTo}</td>
-                  <td className="py-2 px-4">{item.department}</td>
-                  <td className="py-2 px-4">{item.dueDate}</td>
-                  <td
-                    className={`py-2 px-4 font-semibold ${
-                      item.status === "Completed"
-                        ? "text-green-600"
-                        : "text-yellow-600"
-                    }`}
-                  >
-                    {item.status}
+        {loading ? (
+          <div className="p-12 flex justify-center text-gray-400">Loading automated task view...</div>
+        ) : (
+          <table className="min-w-full table-auto">
+            <thead className="bg-[#0A2342] text-white">
+              <tr>
+                <th className="py-3 px-4 text-left">ID</th>
+                <th className="py-3 px-4 text-left">Task</th>
+                <th className="py-3 px-4 text-left">Assigned To</th>
+                <th className="py-3 px-4 text-left">Department</th>
+                <th className="py-3 px-4 text-left">Due Date</th>
+                <th className="py-3 px-4 text-left">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredData.length > 0 ? (
+                filteredData.map((item) => (
+                  <tr key={item.id} className="border-b hover:bg-gray-100 transition">
+                    <td className="py-2 px-4">{item.id}</td>
+                    <td className="py-2 px-4">{item.task}</td>
+                    <td className="py-2 px-4">{item.assignedTo}</td>
+                    <td className="py-2 px-4">{item.department}</td>
+                    <td className="py-2 px-4">{item.dueDate}</td>
+                    <td
+                      className={`py-2 px-4 font-semibold ${
+                        item.status === "Completed"
+                          ? "text-green-600"
+                          : "text-yellow-600"
+                      }`}
+                    >
+                      {item.status}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={6} className="py-4 text-center text-gray-500">
+                    No records found.
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={6} className="py-4 text-center text-gray-500">
-                  No records found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* Pagination */}

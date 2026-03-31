@@ -1,47 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LayoutDashboard } from "lucide-react";
+import { getAuditorDepartmentOverview } from "../../services/auditor.api";
 
 const DepartmentAuditOverview = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [departmentAudits, setDepartmentAudits] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  
-  const departmentAudits = [
-    {
-      id: 1,
-      department: "Finance",
-      auditor: "John Doe",
-      lastAudit: "2025-11-22",
-      findings: "Minor discrepancies in journal entries",
-      status: "Completed",
-    },
-    {
-      id: 2,
-      department: "HR",
-      auditor: "Jane Smith",
-      lastAudit: "2025-11-20",
-      findings: "Payroll records incomplete",
-      status: "Pending",
-    },
-    {
-      id: 3,
-      department: "Procurement",
-      auditor: "Mark Taylor",
-      lastAudit: "2025-11-18",
-      findings: "Vendor approvals missing",
-      status: "Completed",
-    },
-    {
-      id: 4,
-      department: "IT",
-      auditor: "Sara Lee",
-      lastAudit: "2025-11-21",
-      findings: "Access control policies not followed",
-      status: "Pending",
-    },
-  ];
+  useEffect(() => {
+    getAuditorDepartmentOverview()
+      .then((res) => {
+        setDepartmentAudits(res);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
 
-  
   const filteredData = departmentAudits.filter((item) => {
     const matchesSearch =
       item.department.toLowerCase().includes(search.toLowerCase()) ||
@@ -81,46 +59,50 @@ const DepartmentAuditOverview = () => {
 
       {/* Department Audit Table */}
       <div className="bg-white shadow rounded overflow-x-auto">
-        <table className="min-w-full table-auto">
-          <thead className="bg-[#0A2342] text-white">
-            <tr>
-              <th className="py-3 px-4 text-left">ID</th>
-              <th className="py-3 px-4 text-left">Department</th>
-              <th className="py-3 px-4 text-left">Auditor</th>
-              <th className="py-3 px-4 text-left">Last Audit</th>
-              <th className="py-3 px-4 text-left">Findings</th>
-              <th className="py-3 px-4 text-left">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.length > 0 ? (
-              filteredData.map((item) => (
-                <tr key={item.id} className="border-b hover:bg-gray-100 transition">
-                  <td className="py-2 px-4">{item.id}</td>
-                  <td className="py-2 px-4">{item.department}</td>
-                  <td className="py-2 px-4">{item.auditor}</td>
-                  <td className="py-2 px-4">{item.lastAudit}</td>
-                  <td className="py-2 px-4">{item.findings}</td>
-                  <td
-                    className={`py-2 px-4 font-semibold ${
-                      item.status === "Completed"
-                        ? "text-green-600"
-                        : "text-yellow-600"
-                    }`}
-                  >
-                    {item.status}
+        {loading ? (
+          <div className="p-12 flex justify-center text-gray-400">Loading department overview...</div>
+        ) : (
+          <table className="min-w-full table-auto">
+            <thead className="bg-[#0A2342] text-white">
+              <tr>
+                <th className="py-3 px-4 text-left">ID</th>
+                <th className="py-3 px-4 text-left">Department</th>
+                <th className="py-3 px-4 text-left">Auditor</th>
+                <th className="py-3 px-4 text-left">Last Audit</th>
+                <th className="py-3 px-4 text-left">Findings</th>
+                <th className="py-3 px-4 text-left">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredData.length > 0 ? (
+                filteredData.map((item) => (
+                  <tr key={item.id} className="border-b hover:bg-gray-100 transition">
+                    <td className="py-2 px-4">{item.id}</td>
+                    <td className="py-2 px-4">{item.department}</td>
+                    <td className="py-2 px-4">{item.auditor}</td>
+                    <td className="py-2 px-4">{item.lastAudit}</td>
+                    <td className="py-2 px-4">{item.findings}</td>
+                    <td
+                      className={`py-2 px-4 font-semibold ${
+                        item.status === "Completed"
+                          ? "text-green-600"
+                          : "text-yellow-600"
+                      }`}
+                    >
+                      {item.status}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={6} className="py-4 text-center text-gray-500">
+                    No records found.
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={6} className="py-4 text-center text-gray-500">
-                  No records found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* Pagination */}

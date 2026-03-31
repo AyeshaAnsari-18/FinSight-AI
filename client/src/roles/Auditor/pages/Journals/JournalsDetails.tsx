@@ -1,15 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Book } from "lucide-react";
+import { getJournals } from "../../services/auditor.api";
 
 const JournalsDetails = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [journalEntries, setJournalEntries] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const journalEntries = [
-    { id: 1, journal: "Sales Journal", user: "John Doe", date: "2025-11-22", status: "Posted" },
-    { id: 2, journal: "Purchase Journal", user: "Jane Smith", date: "2025-11-21", status: "Pending" },
-    { id: 3, journal: "Cash Receipts Journal", user: "Mark Taylor", date: "2025-11-20", status: "Posted" },
-  ];
+  useEffect(() => {
+    getJournals()
+      .then((res) => {
+        const mappedData = res.map((j: any) => ({
+          id: j.id.substring(0, 6).toUpperCase(),
+          journal: j.description || "General Journal",
+          user: j.reference || "System",
+          date: new Date(j.date).toISOString().split('T')[0],
+          status: j.status === 'POSTED' ? 'Posted' : 'Pending',
+        }));
+        setJournalEntries(mappedData);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
 
   const filteredData = journalEntries.filter((entry) => {
     const matchesSearch =
@@ -49,36 +65,40 @@ const JournalsDetails = () => {
 
       {/* Table */}
       <div className="bg-white shadow rounded overflow-x-auto">
-        <table className="min-w-full table-auto">
-          <thead className="bg-[#0A2342] text-white">
-            <tr>
-              <th className="py-3 px-4 text-left">ID</th>
-              <th className="py-3 px-4 text-left">Journal</th>
-              <th className="py-3 px-4 text-left">User</th>
-              <th className="py-3 px-4 text-left">Date</th>
-              <th className="py-3 px-4 text-left">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.length > 0 ? (
-              filteredData.map((entry) => (
-                <tr key={entry.id} className="border-b hover:bg-gray-100 transition">
-                  <td className="py-2 px-4">{entry.id}</td>
-                  <td className="py-2 px-4">{entry.journal}</td>
-                  <td className="py-2 px-4">{entry.user}</td>
-                  <td className="py-2 px-4">{entry.date}</td>
-                  <td className={`py-2 px-4 font-semibold ${entry.status === "Posted" ? "text-green-600" : "text-yellow-600"}`}>
-                    {entry.status}
-                  </td>
-                </tr>
-              ))
-            ) : (
+        {loading ? (
+          <div className="p-12 flex justify-center text-gray-400">Loading journals...</div>
+        ) : (
+          <table className="min-w-full table-auto">
+            <thead className="bg-[#0A2342] text-white">
               <tr>
-                <td colSpan={5} className="py-4 text-center text-gray-500">No records found.</td>
+                <th className="py-3 px-4 text-left">ID</th>
+                <th className="py-3 px-4 text-left">Journal</th>
+                <th className="py-3 px-4 text-left">User</th>
+                <th className="py-3 px-4 text-left">Date</th>
+                <th className="py-3 px-4 text-left">Status</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredData.length > 0 ? (
+                filteredData.map((entry) => (
+                  <tr key={entry.id} className="border-b hover:bg-gray-100 transition">
+                    <td className="py-2 px-4">{entry.id}</td>
+                    <td className="py-2 px-4">{entry.journal}</td>
+                    <td className="py-2 px-4">{entry.user}</td>
+                    <td className="py-2 px-4">{entry.date}</td>
+                    <td className={`py-2 px-4 font-semibold ${entry.status === "Posted" ? "text-green-600" : "text-yellow-600"}`}>
+                      {entry.status}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="py-4 text-center text-gray-500">No records found.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

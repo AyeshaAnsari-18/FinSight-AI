@@ -1,18 +1,34 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AlertTriangle } from "lucide-react";
+import { getJournals } from "../../services/auditor.api";
 
 const FlagsAndRedAlerts = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [alertsData, setAlertsData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  
-  const alertsData = [
-    { id: 1, alert: "Missing invoice approval", department: "Finance", raisedBy: "John Doe", date: "2025-11-22", severity: "High" },
-    { id: 2, alert: "Unreconciled bank transactions", department: "Accounts Payable", raisedBy: "Jane Smith", date: "2025-11-21", severity: "Medium" },
-    { id: 3, alert: "Expired contract not renewed", department: "Procurement", raisedBy: "Mark Taylor", date: "2025-11-20", severity: "Low" },
-  ];
+  useEffect(() => {
+    getJournals()
+      .then((res) => {
+        const flagged = res.filter((j: any) => j.status === 'FLAGGED' || j.riskScore > 50);
+        const mappedData = flagged.map((j: any) => ({
+          id: j.id.substring(0, 6).toUpperCase(),
+          alert: j.flagReason || "High Risk Score detected",
+          department: "Finance",
+          raisedBy: j.reference || "System Analyst",
+          date: new Date(j.date).toISOString().split('T')[0],
+          severity: j.riskScore && j.riskScore > 80 ? "High" : "Medium",
+        }));
+        setAlertsData(mappedData);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
 
-  
   const filteredData = alertsData.filter((item) => {
     const matchesSearch =
       item.alert.toLowerCase().includes(search.toLowerCase()) ||
@@ -53,55 +69,52 @@ const FlagsAndRedAlerts = () => {
 
       {/* Table */}
       <div className="bg-white shadow rounded overflow-x-auto">
-        <table className="min-w-full table-auto">
-          <thead className="bg-[#0A2342] text-white">
-            <tr>
-              <th className="py-3 px-4 text-left">ID</th>
-              <th className="py-3 px-4 text-left">Alert</th>
-              <th className="py-3 px-4 text-left">Department</th>
-              <th className="py-3 px-4 text-left">Raised By</th>
-              <th className="py-3 px-4 text-left">Date</th>
-              <th className="py-3 px-4 text-left">Severity</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.length > 0 ? (
-              filteredData.map((item) => (
-                <tr key={item.id} className="border-b hover:bg-gray-100 transition">
-                  <td className="py-2 px-4">{item.id}</td>
-                  <td className="py-2 px-4">{item.alert}</td>
-                  <td className="py-2 px-4">{item.department}</td>
-                  <td className="py-2 px-4">{item.raisedBy}</td>
-                  <td className="py-2 px-4">{item.date}</td>
-                  <td
-                    className={`py-2 px-4 font-semibold ${
-                      item.severity === "High"
-                        ? "text-red-600"
-                        : item.severity === "Medium"
-                        ? "text-yellow-600"
-                        : "text-green-600"
-                    }`}
-                  >
-                    {item.severity}
+        {loading ? (
+          <div className="p-12 flex justify-center text-gray-400">Loading alerts...</div>
+        ) : (
+          <table className="min-w-full table-auto">
+            <thead className="bg-[#0A2342] text-white">
+              <tr>
+                <th className="py-3 px-4 text-left">ID</th>
+                <th className="py-3 px-4 text-left">Alert</th>
+                <th className="py-3 px-4 text-left">Department</th>
+                <th className="py-3 px-4 text-left">Raised By</th>
+                <th className="py-3 px-4 text-left">Date</th>
+                <th className="py-3 px-4 text-left">Severity</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredData.length > 0 ? (
+                filteredData.map((item) => (
+                  <tr key={item.id} className="border-b hover:bg-gray-100 transition">
+                    <td className="py-2 px-4">{item.id}</td>
+                    <td className="py-2 px-4">{item.alert}</td>
+                    <td className="py-2 px-4">{item.department}</td>
+                    <td className="py-2 px-4">{item.raisedBy}</td>
+                    <td className="py-2 px-4">{item.date}</td>
+                    <td
+                      className={`py-2 px-4 font-semibold ${
+                        item.severity === "High"
+                          ? "text-red-600"
+                          : item.severity === "Medium"
+                          ? "text-yellow-600"
+                          : "text-green-600"
+                      }`}
+                    >
+                      {item.severity}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={6} className="py-4 text-center text-gray-500">
+                    No records found.
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={6} className="py-4 text-center text-gray-500">
-                  No records found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Pagination */}
-      <div className="flex justify-end mt-4">
-        <button className="px-3 py-1 border rounded-l bg-white hover:bg-gray-100">Prev</button>
-        <button className="px-3 py-1 border-t border-b bg-white hover:bg-gray-100">1</button>
-        <button className="px-3 py-1 border rounded-r bg-white hover:bg-gray-100">Next</button>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

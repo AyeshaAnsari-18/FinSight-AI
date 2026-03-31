@@ -1,15 +1,32 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Book } from "lucide-react";
+import { getJournals } from "../../services/auditor.api";
 
 const JournalsReview = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [reviewData, setReviewData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const reviewData = [
-    { id: 1, journal: "Sales Journal", reviewer: "John Doe", reviewDate: "2025-11-22", status: "Approved" },
-    { id: 2, journal: "Purchase Journal", reviewer: "Jane Smith", reviewDate: "2025-11-21", status: "Pending" },
-    { id: 3, journal: "Cash Receipts Journal", reviewer: "Mark Taylor", reviewDate: "2025-11-20", status: "Rejected" },
-  ];
+  useEffect(() => {
+    getJournals()
+      .then((res) => {
+        const reviews = res.filter((j: any) => j.status === 'DRAFT' || j.status === 'POSTED');
+        const mappedData = reviews.map((j: any) => ({
+          id: j.id.substring(0, 6).toUpperCase(),
+          journal: j.description || "General Journal",
+          reviewer: "System Auditor",
+          reviewDate: new Date(j.updatedAt || j.date).toISOString().split('T')[0],
+          status: j.status === 'POSTED' ? 'Approved' : 'Pending',
+        }));
+        setReviewData(mappedData);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
 
   const filteredData = reviewData.filter((item) => {
     const matchesSearch =
@@ -50,44 +67,48 @@ const JournalsReview = () => {
 
       {/* Table */}
       <div className="bg-white shadow rounded overflow-x-auto">
-        <table className="min-w-full table-auto">
-          <thead className="bg-[#0A2342] text-white">
-            <tr>
-              <th className="py-3 px-4 text-left">ID</th>
-              <th className="py-3 px-4 text-left">Journal</th>
-              <th className="py-3 px-4 text-left">Reviewer</th>
-              <th className="py-3 px-4 text-left">Review Date</th>
-              <th className="py-3 px-4 text-left">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.length > 0 ? (
-              filteredData.map((item) => (
-                <tr key={item.id} className="border-b hover:bg-gray-100 transition">
-                  <td className="py-2 px-4">{item.id}</td>
-                  <td className="py-2 px-4">{item.journal}</td>
-                  <td className="py-2 px-4">{item.reviewer}</td>
-                  <td className="py-2 px-4">{item.reviewDate}</td>
-                  <td
-                    className={`py-2 px-4 font-semibold ${
-                      item.status === "Approved"
-                        ? "text-green-600"
-                        : item.status === "Pending"
-                        ? "text-yellow-600"
-                        : "text-red-600"
-                    }`}
-                  >
-                    {item.status}
-                  </td>
-                </tr>
-              ))
-            ) : (
+        {loading ? (
+          <div className="p-12 flex justify-center text-gray-400">Loading journal reviews...</div>
+        ) : (
+          <table className="min-w-full table-auto">
+            <thead className="bg-[#0A2342] text-white">
               <tr>
-                <td colSpan={5} className="py-4 text-center text-gray-500">No records found.</td>
+                <th className="py-3 px-4 text-left">ID</th>
+                <th className="py-3 px-4 text-left">Journal</th>
+                <th className="py-3 px-4 text-left">Reviewer</th>
+                <th className="py-3 px-4 text-left">Review Date</th>
+                <th className="py-3 px-4 text-left">Status</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredData.length > 0 ? (
+                filteredData.map((item) => (
+                  <tr key={item.id} className="border-b hover:bg-gray-100 transition">
+                    <td className="py-2 px-4">{item.id}</td>
+                    <td className="py-2 px-4">{item.journal}</td>
+                    <td className="py-2 px-4">{item.reviewer}</td>
+                    <td className="py-2 px-4">{item.reviewDate}</td>
+                    <td
+                      className={`py-2 px-4 font-semibold ${
+                        item.status === "Approved"
+                          ? "text-green-600"
+                          : item.status === "Pending"
+                          ? "text-yellow-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {item.status}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="py-4 text-center text-gray-500">No records found.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

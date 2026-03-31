@@ -1,39 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CheckCircle } from "lucide-react";
+import { getTasks } from "../../services/auditor.api";
 
 const ClearancePanel = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [clearanceData, setClearanceData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  
-  const clearanceData = [
-    {
-      id: 1,
-      request: "Invoice Clearance",
-      requester: "John Doe",
-      department: "Finance",
-      date: "2025-11-22",
-      status: "Approved",
-    },
-    {
-      id: 2,
-      request: "Vendor Payment Clearance",
-      requester: "Jane Smith",
-      department: "Accounts Payable",
-      date: "2025-11-21",
-      status: "Pending",
-    },
-    {
-      id: 3,
-      request: "Expense Reimbursement",
-      requester: "Mark Taylor",
-      department: "HR",
-      date: "2025-11-20",
-      status: "Rejected",
-    },
-  ];
+  useEffect(() => {
+    getTasks()
+      .then((res) => {
+        const mappedData = res.map((task: any) => ({
+          id: task.id.substring(0, 6).toUpperCase(),
+          request: task.title,
+          requester: task.assignedToId || "System",
+          department: "Operations",
+          date: new Date(task.createdAt).toISOString().split('T')[0],
+          status: task.status === 'DONE' ? 'Approved' : 'Pending',
+        }));
+        setClearanceData(mappedData);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
 
-  
   const filteredData = clearanceData.filter((item) => {
     const matchesSearch =
       item.request.toLowerCase().includes(search.toLowerCase()) ||
@@ -41,7 +35,6 @@ const ClearancePanel = () => {
       item.department.toLowerCase().includes(search.toLowerCase());
 
     const matchesStatus = statusFilter ? item.status === statusFilter : true;
-
     return matchesSearch && matchesStatus;
   });
 
@@ -76,55 +69,52 @@ const ClearancePanel = () => {
 
       {/* Clearance Table */}
       <div className="bg-white shadow rounded overflow-x-auto">
-        <table className="min-w-full table-auto">
-          <thead className="bg-[#0A2342] text-white">
-            <tr>
-              <th className="py-3 px-4 text-left">ID</th>
-              <th className="py-3 px-4 text-left">Request</th>
-              <th className="py-3 px-4 text-left">Requester</th>
-              <th className="py-3 px-4 text-left">Department</th>
-              <th className="py-3 px-4 text-left">Date</th>
-              <th className="py-3 px-4 text-left">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.length > 0 ? (
-              filteredData.map((item) => (
-                <tr key={item.id} className="border-b hover:bg-gray-100 transition">
-                  <td className="py-2 px-4">{item.id}</td>
-                  <td className="py-2 px-4">{item.request}</td>
-                  <td className="py-2 px-4">{item.requester}</td>
-                  <td className="py-2 px-4">{item.department}</td>
-                  <td className="py-2 px-4">{item.date}</td>
-                  <td
-                    className={`py-2 px-4 font-semibold ${
-                      item.status === "Approved"
-                        ? "text-green-600"
-                        : item.status === "Pending"
-                        ? "text-yellow-600"
-                        : "text-red-600"
-                    }`}
-                  >
-                    {item.status}
+        {loading ? (
+          <div className="p-12 flex justify-center text-gray-400">Loading clearances...</div>
+        ) : (
+          <table className="min-w-full table-auto">
+            <thead className="bg-[#0A2342] text-white">
+              <tr>
+                <th className="py-3 px-4 text-left">ID</th>
+                <th className="py-3 px-4 text-left">Request</th>
+                <th className="py-3 px-4 text-left">Requester</th>
+                <th className="py-3 px-4 text-left">Department</th>
+                <th className="py-3 px-4 text-left">Date</th>
+                <th className="py-3 px-4 text-left">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredData.length > 0 ? (
+                filteredData.map((item) => (
+                  <tr key={item.id} className="border-b hover:bg-gray-100 transition">
+                    <td className="py-2 px-4">{item.id}</td>
+                    <td className="py-2 px-4">{item.request}</td>
+                    <td className="py-2 px-4">{item.requester}</td>
+                    <td className="py-2 px-4">{item.department}</td>
+                    <td className="py-2 px-4">{item.date}</td>
+                    <td
+                      className={`py-2 px-4 font-semibold ${
+                        item.status === "Approved"
+                          ? "text-green-600"
+                          : item.status === "Pending"
+                          ? "text-yellow-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {item.status}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={6} className="py-4 text-center text-gray-500">
+                    No records found.
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={6} className="py-4 text-center text-gray-500">
-                  No records found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Pagination */}
-      <div className="flex justify-end mt-4">
-        <button className="px-3 py-1 border rounded-l bg-white hover:bg-gray-100">Prev</button>
-        <button className="px-3 py-1 border-t border-b bg-white hover:bg-gray-100">1</button>
-        <button className="px-3 py-1 border rounded-r bg-white hover:bg-gray-100">Next</button>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
