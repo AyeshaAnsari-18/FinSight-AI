@@ -50,7 +50,7 @@ export class ForecastService {
     const data = await this.getHistoricalData();
     try {
       const response = await lastValueFrom(
-        this.httpService.post('http://localhost:8000/predict-forecast', { historical_data: data })
+        this.httpService.post(`${process.env.ENGINE_URL || 'http://localhost:8000'}/predict-forecast`, { historical_data: data })
       );
       
       this.forecastCache = response.data.forecasts || [];
@@ -70,7 +70,7 @@ export class ForecastService {
     const data = await this.getHistoricalData();
     try {
       const response = await lastValueFrom(
-        this.httpService.post('http://localhost:8000/predict-what-if', { historical_data: data })
+        this.httpService.post(`${process.env.ENGINE_URL || 'http://localhost:8000'}/predict-what-if`, { historical_data: data })
       );
       
       this.whatIfCache = response.data.analyses || [];

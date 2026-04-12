@@ -49,7 +49,7 @@ export class CopilotService {
     // 4. Call engine RAG Endpoint
     let reply = "";
     try {
-      const response = await axios.post('http://localhost:8000/copilot/rag', {
+      const response = await axios.post(`${process.env.ENGINE_URL || 'http://localhost:8000'}/copilot/rag`, {
         role,
         message,
         context: context || "No dynamic context.",

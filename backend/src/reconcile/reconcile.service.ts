@@ -19,7 +19,7 @@ export class ReconcileService {
     let aiResult;
     try {
       const response = await lastValueFrom(
-        this.httpService.post('http://localhost:8000/analyze-reconciliation', {
+        this.httpService.post(`${process.env.ENGINE_URL || 'http://localhost:8000'}/analyze-reconciliation`, {
           bank_balance: dto.bankBalance,
           ledger_balance: dto.ledgerBalance,
           notes: dto.notes,

@@ -14,7 +14,7 @@ export class EngineService {
   async analyzeWithAI(journalData: { description: string; debit: number; credit: number; reference: string }) {
     try {
       const response = await lastValueFrom(
-        this.httpService.post('http://localhost:8000/analyze-journal', journalData),
+        this.httpService.post(`${process.env.ENGINE_URL || 'http://localhost:8000'}/analyze-journal`, journalData),
       );
       return response.data;
     } catch (error) {
@@ -28,7 +28,7 @@ export class EngineService {
     const fileBlob = new Blob([new Uint8Array(file.buffer)], { type: file.mimetype });
     formData.append('file', fileBlob, file.originalname);
     const response = await lastValueFrom(
-      this.httpService.post('http://localhost:8000/extract-document', formData, {
+      this.httpService.post(`${process.env.ENGINE_URL || 'http://localhost:8000'}/extract-document`, formData, {
       })
     );
 
