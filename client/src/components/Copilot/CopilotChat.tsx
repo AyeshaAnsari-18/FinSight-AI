@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '../../store/store';
 import api from '../../lib/api';
 import { MessageSquare, X, Send, Bot, Loader2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 interface ChatMessage {
   id?: string;
