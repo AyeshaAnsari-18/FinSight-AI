@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  backend:
+    container_name: finsight-backend
+    build: ./backend
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./backend/.env
+  engine:
+    container_name: finsight-engine
+    build: ./engine
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./engine/.env
+  frontend:
+    container_name: finsight-frontend
+    build: ./client
+    ports:
+      - "5173:5173"
+    env_file:
+      - ./client/.env
+    depends_on:
+      - backend
