@@ -3,8 +3,10 @@ import Cookies from 'js-cookie';
 import { store } from '../store/store';
 import { logOut, setCredentials, decodeToken } from '../store/authSlice';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 const api = axios.create({
-  baseURL: 'http://localhost:3000', // Your NestJS Backend
+  baseURL: API_URL, // Your NestJS Backend
   headers: {
     'Content-Type': 'application/json',
   },
@@ -32,7 +34,7 @@ api.interceptors.response.use(
 
       if (refreshToken) {
         try {
-          const { data } = await axios.post('http://localhost:3000/auth/refresh', {}, {
+          const { data } = await axios.post(`${API_URL}/auth/refresh`, {}, {
             headers: { Authorization: `Bearer ${refreshToken}` }
           });
 
