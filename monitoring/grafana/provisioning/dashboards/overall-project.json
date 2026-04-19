@@ -1,0 +1,95 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "title": "Client SLA Status Focus",
+      "type": "stat",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 6, "w": 6, "x": 0, "y": 0},
+      "targets": [{"expr": "probe_success{job=\"client_uptime\"}", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "rgba(40,40,40,1)", "value": null}, {"color": "#C53AE8", "value": 1}]}
+        }
+      }
+    },
+    {
+      "title": "Active Connected Platform Clients",
+      "type": "stat",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 6, "w": 6, "x": 6, "y": 0},
+      "targets": [{"expr": "active_platform_users", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "#8A2BE2", "value": null}, {"color": "#9400D3", "value": 50}]}
+        }
+      }
+    },
+    {
+      "title": "Live Journal / Report Extraction Volumes",
+      "type": "bargauge",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 6, "w": 6, "x": 12, "y": 0},
+      "targets": [{"expr": "journal_analyses_total", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-purple"},
+          "min": 0, "max": 1000
+        }
+      },
+      "options": {"displayMode": "gradient", "orientation": "horizontal"}
+    },
+    {
+      "title": "Global AI Token Consumption",
+      "type": "gauge",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 6, "w": 6, "x": 18, "y": 0},
+      "targets": [{"expr": "sum(ai_tokens_total)", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "#B038B3", "value": null}, {"color": "#7E38B3", "value": 50000}]},
+          "min": 0, "max": 100000
+        }
+      }
+    },
+    {
+      "title": "Total System Traffic Segregation",
+      "type": "piechart",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 10, "w": 8, "x": 0, "y": 6},
+      "targets": [{"expr": "sum(http_requests_total{job=\"backend\"}) by (method)", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {"color": {"mode": "palette-purple"}}
+      },
+      "options": {"pieType": "donut", "tooltip": {"mode": "single", "sort": "none"}}
+    },
+    {
+      "title": "Backend P99 Latency Trackers",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 10, "w": 16, "x": 8, "y": 6},
+      "targets": [{"expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=\"backend\"}[5m])) by (le, path))", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-purple"},
+          "custom": {"fillOpacity": 15, "gradientMode": "opacity", "lineWidth": 2}
+        }
+      }
+    }
+  ],
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["overall", "purple"],
+  "time": {"from": "now-6h", "to": "now"},
+  "title": "Overall Project Profile",
+  "uid": "overall-project",
+  "version": 1
+}

@@ -1,0 +1,120 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "panels": [
+    {
+      "title": "Active AI Agent Execution Threads",
+      "type": "stat",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 6, "w": 6, "x": 0, "y": 0},
+      "targets": [{"expr": "sum(active_agents_running)", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "#8A2BE2", "value": null}, {"color": "#9400D3", "value": 5}]}
+        }
+      }
+    },
+    {
+      "title": "AI Agent Accuracy Confidence Profiler",
+      "type": "gauge",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 6, "w": 6, "x": 6, "y": 0},
+      "targets": [{"expr": "avg(ai_accuracy_score) by (endpoint)", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "#7E38B3", "value": null}, {"color": "#C53AE8", "value": 90}]},
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "title": "Reconciliation Policies Enforced",
+      "type": "stat",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 6, "w": 6, "x": 12, "y": 0},
+      "targets": [{"expr": "reconciliation_analyses_total", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "#B038B3", "value": null}]}
+        }
+      }
+    },
+    {
+      "title": "AI Forecasting / Predictions Simulated",
+      "type": "stat",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 6, "w": 6, "x": 18, "y": 0},
+      "targets": [{"expr": "forecasting_total", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "#8A2BE2", "value": null}]}
+        }
+      }
+    },
+    {
+      "title": "Exact Token Utilizations per AI Node",
+      "type": "bargauge",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 6},
+      "targets": [{"expr": "sum(ai_tokens_total) by (endpoint)", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-purple"},
+          "min": 0, "max": 100000
+        }
+      },
+      "options": {"displayMode": "gradient", "orientation": "horizontal"}
+    },
+    {
+      "title": "Copilot RAG Memory Allocation Overheads (MB)",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 6},
+      "targets": [{"expr": "rag_memory_overhead_mb", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-purple"},
+          "custom": {"fillOpacity": 30, "gradientMode": "opacity", "lineWidth": 3}
+        }
+      }
+    },
+    {
+      "title": "Copilot User Message Prompt Density (Characters)",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 14},
+      "targets": [{"expr": "histogram_quantile(0.9, sum(rate(copilot_user_message_length_bucket[5m])) by (le))", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-purple"},
+          "custom": {"fillOpacity": 15, "gradientMode": "hue", "lineWidth": 2}
+        }
+      }
+    },
+    {
+      "title": "Per-Endpoint Request Cadence & RPS Focus",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 14},
+      "targets": [{"expr": "sum(rate(http_requests_total{job=\"engine\"}[1m])) by (handler)", "refId": "A"}],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-purple"},
+          "custom": {"fillOpacity": 20, "gradientMode": "opacity", "lineWidth": 2}
+        }
+      }
+    }
+  ],
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["engine", "purple", "ai"],
+  "time": {"from": "now-6h", "to": "now"},
+  "title": "Engine Telemetry Profile",
+  "uid": "engine-detailed",
+  "version": 1
+}

@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: finsight-prometheus
+    entrypoint: [ "/bin/sh", "-c", "sed -e 's|ENGINE_TARGET|'${ENGINE_TARGET}'|g' -e 's|BACKEND_TARGET|'${BACKEND_TARGET}'|g' -e 's|CLIENT_TARGET|'${CLIENT_TARGET}'|g' /etc/prometheus/prometheus.yml.template > /etc/prometheus/prometheus.yml && /bin/prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus" ]
+    environment:
+      - ENGINE_TARGET=${ENGINE_TARGET}
+      - BACKEND_TARGET=${BACKEND_TARGET}
+      - CLIENT_TARGET=${CLIENT_TARGET}
+    volumes:
+      - ./prometheus.yml.template:/etc/prometheus/prometheus.yml.template
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: finsight-grafana
+    user: root
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+    volumes:
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+
+  blackbox:
+    image: prom/blackbox-exporter:latest
+    container_name: finsight-blackbox
+    ports:
+      - "9115:9115"
+
+volumes:
+  prometheus_data:
