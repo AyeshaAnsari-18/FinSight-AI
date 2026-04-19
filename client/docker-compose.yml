@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  frontend:
+    container_name: finsight-frontend
+    build: .
+    ports:
+      - "80:80"
+    env_file:
+      - .env
