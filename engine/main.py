@@ -19,7 +19,7 @@ app = FastAPI(title="FinSight AI Orchestrator")
 # Allow NestJS to hit this API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000", "http://16.171.230.175:3000", "http://172.31.45.137:3000"],  # backend URLs],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

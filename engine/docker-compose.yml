@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  frontend:
+  engine:
     container_name: finsight-engine
     build: .
     ports:
