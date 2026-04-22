@@ -1,95 +1,357 @@
 {
-  "annotations": {"list": []},
+  "annotations": {
+    "list": []
+  },
   "editable": true,
   "fiscalYearStartMonth": 0,
-  "graphTooltip": 0,
+  "graphTooltip": 1,
   "links": [],
   "liveNow": false,
   "panels": [
     {
-      "title": "Client SLA Status Focus",
-      "type": "stat",
+      "id": 1,
+      "title": "Client SLA Timeline",
+      "type": "state-timeline",
       "datasource": "Prometheus",
-      "gridPos": {"h": 6, "w": 6, "x": 0, "y": 0},
-      "targets": [{"expr": "probe_success{job=\"client_uptime\"}", "refId": "A"}],
+      "gridPos": { "h": 5, "w": 24, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "probe_success{job=\"client_uptime\"}",
+          "refId": "A"
+        }
+      ],
       "fieldConfig": {
         "defaults": {
-          "color": {"mode": "thresholds"},
-          "thresholds": {"mode": "absolute", "steps": [{"color": "rgba(40,40,40,1)", "value": null}, {"color": "#C53AE8", "value": 1}]}
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "#EF4444", "value": null },
+              { "color": "#10B981", "value": 1 }
+            ]
+          }
         }
+      },
+      "options": {
+        "legend": { "displayMode": "hidden", "placement": "bottom", "showLegend": false },
+        "tooltip": { "mode": "single", "sort": "none" }
       }
     },
     {
-      "title": "Active Connected Platform Clients",
+      "id": 2,
+      "title": "Active Platform Users",
       "type": "stat",
       "datasource": "Prometheus",
-      "gridPos": {"h": 6, "w": 6, "x": 6, "y": 0},
-      "targets": [{"expr": "active_platform_users", "refId": "A"}],
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 5 },
+      "targets": [
+        {
+          "expr": "max(active_platform_users)",
+          "refId": "A"
+        }
+      ],
       "fieldConfig": {
         "defaults": {
-          "color": {"mode": "thresholds"},
-          "thresholds": {"mode": "absolute", "steps": [{"color": "#8A2BE2", "value": null}, {"color": "#9400D3", "value": 50}]}
+          "unit": "short",
+          "color": { "fixedColor": "#2563EB", "mode": "fixed" }
         }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "value"
       }
     },
     {
-      "title": "Live Journal / Report Extraction Volumes",
+      "id": 3,
+      "title": "Backend Requests (Range)",
+      "type": "stat",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 5 },
+      "targets": [
+        {
+          "expr": "sum(increase(http_requests_total{job=\"backend\",path!=\"/metrics\"}[$__range]))",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "fixedColor": "#0F766E", "mode": "fixed" }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 4,
+      "title": "Engine AI Requests (Range)",
+      "type": "stat",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 5 },
+      "targets": [
+        {
+          "expr": "sum(increase(http_requests_total{job=\"engine\",handler!~\"/metrics|/docs|/openapi.json\"}[$__range]))",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "fixedColor": "#7C3AED", "mode": "fixed" }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 5,
+      "title": "AI Tokens Processed (Range)",
+      "type": "stat",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 5 },
+      "targets": [
+        {
+          "expr": "sum(increase(ai_tokens_total[$__range]))",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "fixedColor": "#EA580C", "mode": "fixed" }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 6,
+      "title": "Journal Analyses (Range)",
+      "type": "stat",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 5 },
+      "targets": [
+        {
+          "expr": "sum(increase(journal_analyses_total[$__range]))",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "fixedColor": "#1D4ED8", "mode": "fixed" }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 7,
+      "title": "Reconciliation Analyses (Range)",
+      "type": "stat",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 5 },
+      "targets": [
+        {
+          "expr": "sum(increase(reconciliation_analyses_total[$__range]))",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "fixedColor": "#D97706", "mode": "fixed" }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 8,
+      "title": "Backend Route Load",
       "type": "bargauge",
       "datasource": "Prometheus",
-      "gridPos": {"h": 6, "w": 6, "x": 12, "y": 0},
-      "targets": [{"expr": "journal_analyses_total", "refId": "A"}],
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 9 },
+      "targets": [
+        {
+          "expr": "sum(increase(http_requests_total{job=\"backend\",path!=\"/metrics\"}[$__range])) by (path)",
+          "legendFormat": "{{path}}",
+          "refId": "A"
+        }
+      ],
       "fieldConfig": {
         "defaults": {
-          "color": {"mode": "palette-purple"},
-          "min": 0, "max": 1000
+          "unit": "short",
+          "color": { "mode": "palette-classic" }
         }
       },
-      "options": {"displayMode": "gradient", "orientation": "horizontal"}
-    },
-    {
-      "title": "Global AI Token Consumption",
-      "type": "gauge",
-      "datasource": "Prometheus",
-      "gridPos": {"h": 6, "w": 6, "x": 18, "y": 0},
-      "targets": [{"expr": "sum(ai_tokens_total)", "refId": "A"}],
-      "fieldConfig": {
-        "defaults": {
-          "color": {"mode": "thresholds"},
-          "thresholds": {"mode": "absolute", "steps": [{"color": "#B038B3", "value": null}, {"color": "#7E38B3", "value": 50000}]},
-          "min": 0, "max": 100000
-        }
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showUnfilled": true,
+        "text": {}
       }
     },
     {
-      "title": "Total System Traffic Segregation",
-      "type": "piechart",
+      "id": 9,
+      "title": "Engine Endpoint Load",
+      "type": "bargauge",
       "datasource": "Prometheus",
-      "gridPos": {"h": 10, "w": 8, "x": 0, "y": 6},
-      "targets": [{"expr": "sum(http_requests_total{job=\"backend\"}) by (method)", "refId": "A"}],
-      "fieldConfig": {
-        "defaults": {"color": {"mode": "palette-purple"}}
-      },
-      "options": {"pieType": "donut", "tooltip": {"mode": "single", "sort": "none"}}
-    },
-    {
-      "title": "Backend P99 Latency Trackers",
-      "type": "timeseries",
-      "datasource": "Prometheus",
-      "gridPos": {"h": 10, "w": 16, "x": 8, "y": 6},
-      "targets": [{"expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=\"backend\"}[5m])) by (le, path))", "refId": "A"}],
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 9 },
+      "targets": [
+        {
+          "expr": "sum(increase(http_requests_total{job=\"engine\",handler!~\"/metrics|/docs|/openapi.json\"}[$__range])) by (handler)",
+          "legendFormat": "{{handler}}",
+          "refId": "A"
+        }
+      ],
       "fieldConfig": {
         "defaults": {
-          "color": {"mode": "palette-purple"},
-          "custom": {"fillOpacity": 15, "gradientMode": "opacity", "lineWidth": 2}
+          "unit": "short",
+          "color": { "mode": "palette-classic" }
         }
+      },
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showUnfilled": true,
+        "text": {}
+      }
+    },
+    {
+      "id": 10,
+      "title": "Backend P95 Latency",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 17 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"backend\",path!=\"/metrics\"}[$__rate_interval])) by (le, path))",
+          "legendFormat": "{{path}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 12,
+            "gradientMode": "opacity",
+            "lineWidth": 3,
+            "showPoints": "never",
+            "spanNulls": false
+          }
+        }
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      }
+    },
+    {
+      "id": 11,
+      "title": "Engine P95 Latency",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 17 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"engine\",handler!~\"/metrics|/docs|/openapi.json\"}[$__rate_interval])) by (le, handler))",
+          "legendFormat": "{{handler}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 12,
+            "gradientMode": "opacity",
+            "lineWidth": 3,
+            "showPoints": "never",
+            "spanNulls": false
+          }
+        }
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      }
+    },
+    {
+      "id": 12,
+      "title": "Platform Traffic Split",
+      "type": "piechart",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 25 },
+      "targets": [
+        {
+          "expr": "sum(increase(http_requests_total{job=~\"backend|engine\"}[$__range])) by (job)",
+          "legendFormat": "{{job}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "options": {
+        "pieType": "donut",
+        "legend": { "displayMode": "list", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "desc" }
+      }
+    },
+    {
+      "id": 13,
+      "title": "AI Endpoint Mix (Range)",
+      "type": "piechart",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 25 },
+      "targets": [
+        {
+          "expr": "sum(increase(ai_tokens_total[$__range])) by (endpoint)",
+          "legendFormat": "{{endpoint}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "options": {
+        "pieType": "donut",
+        "legend": { "displayMode": "list", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "desc" }
       }
     }
   ],
   "schemaVersion": 38,
   "style": "dark",
-  "tags": ["overall", "purple"],
-  "time": {"from": "now-6h", "to": "now"},
+  "tags": ["overall", "observability", "platform"],
+  "time": {
+    "from": "now-12h",
+    "to": "now"
+  },
   "title": "Overall Project Profile",
   "uid": "overall-project",
-  "version": 1
+  "version": 3
 }

@@ -11,6 +11,7 @@ import api from "./lib/api";
 
 import Login from "./Pages/login/Page";
 import Signup from "./Pages/signup/Page";
+import AdminTestPage from "./admin-test/AdminTestPage";
 
 import AccountantLayout from "./roles/Accountant/layout/AccountantLayout";
 import AuditorLayout from "./roles/Auditor/layout/AuditorLayout";
@@ -78,6 +79,7 @@ const App = () => {
           element={
             !isAuthenticated ? <Signup /> : (
                user?.role === 'ACCOUNTANT' ? <Navigate to="/accountant" /> :
+               user?.role === 'ADMIN' ? <Navigate to="/admin-test" /> :
                user?.role === 'MANAGER' ? <Navigate to="/manager" /> :
                user?.role === 'AUDITOR' ? <Navigate to="/auditor" /> :
                user?.role === 'COMPLIANCE' ? <Navigate to="/compliance" /> :
@@ -86,6 +88,8 @@ const App = () => {
           } 
         />
 
+        <Route path="/admin-test" element={<AdminTestPage />} />
+
         {/* LOGIN PAGE - Redirect to role dashboard if already logged in */}
         <Route 
           path="/login" 
@@ -93,6 +97,7 @@ const App = () => {
             !isAuthenticated ? <Login /> : (
                
                user?.role === 'ACCOUNTANT' ? <Navigate to="/accountant" /> :
+               user?.role === 'ADMIN' ? <Navigate to="/admin-test" /> :
                user?.role === 'MANAGER' ? <Navigate to="/manager" /> :
                user?.role === 'AUDITOR' ? <Navigate to="/auditor" /> :
                user?.role === 'COMPLIANCE' ? <Navigate to="/compliance" /> :
@@ -141,7 +146,7 @@ const App = () => {
         </Route>
 
       </Routes>
-      <CopilotChat />
+      {isAuthenticated && user?.role !== 'ADMIN' ? <CopilotChat /> : null}
       <Toaster position="top-right" />
     </Router>
   );

@@ -16,6 +16,16 @@ export class AtGuard extends AuthGuard('jwt') {
 
     if (isPublic) return true;
 
+    const request = context.switchToHttp().getRequest();
+    const requestPath = request.route?.path ?? request.path ?? request.url;
+
+    if (
+      typeof requestPath === 'string' &&
+      (requestPath === 'metrics' || requestPath.startsWith('/metrics'))
+    ) {
+      return true;
+    }
+
     return super.canActivate(context);
   }
 }

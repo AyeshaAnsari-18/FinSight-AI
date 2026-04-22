@@ -3,9 +3,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus
 import { JournalsService } from './journals.service';
 import { CreateJournalDto } from './dto/create-journal.dto';
 import { UpdateJournalDto } from './dto/update-journal.dto';
-
-
-
+import { AnalyzeJournalDto } from './dto/analyze-journal.dto';
+import { JournalReviewDto } from './dto/journal-review.dto';
 
 @Controller('journals')
 export class JournalsController {
@@ -20,6 +19,21 @@ export class JournalsController {
   @Get()
   findAll() {
     return this.journalsService.findAll();
+  }
+
+  @Post('review-summary')
+  reviewSummary(@Body() reviewDto: JournalReviewDto) {
+    return this.journalsService.reviewSummary(reviewDto);
+  }
+
+  @Post('analyze')
+  analyze(@Body() analyzeDto: AnalyzeJournalDto) {
+    return this.journalsService.analyzeDraft(analyzeDto);
+  }
+
+  @Post(':id/analyze')
+  analyzeOne(@Param('id') id: string) {
+    return this.journalsService.reanalyze(id);
   }
 
   @Get(':id')

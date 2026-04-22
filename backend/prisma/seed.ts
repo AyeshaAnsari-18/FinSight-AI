@@ -22,6 +22,7 @@ async function main() {
   await prisma.auditLog.deleteMany({});
   await prisma.reconciliation.deleteMany({});
   await prisma.fiscalClose.deleteMany({});
+  await prisma.adminTestReport.deleteMany({});
   await prisma.user.deleteMany({});
 
   console.log('Old records cleared.');
@@ -63,7 +64,16 @@ async function main() {
     },
   });
 
-  console.log('Users created: accountant, manager, auditor, compliance');
+  await prisma.user.create({
+    data: {
+      email: 'admin@finsight.ai',
+      password: await argon2.hash('admin'),
+      name: 'admin',
+      role: UserRole.ADMIN,
+    },
+  });
+
+  console.log('Users created: accountant, manager, auditor, compliance, admin');
 
   // JOURNALS
   const pastDate = new Date();

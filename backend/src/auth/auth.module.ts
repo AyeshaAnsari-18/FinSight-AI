@@ -9,5 +9,6 @@ import { RtStrategy } from './strategies/rt.strategy';
   imports: [JwtModule.register({})],
   controllers: [AuthController],
   providers: [AuthService, AtStrategy, RtStrategy],
+  exports: [AuthService],
 })
 export class AuthModule {}

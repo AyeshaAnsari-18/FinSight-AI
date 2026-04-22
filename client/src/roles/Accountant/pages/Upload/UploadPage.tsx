@@ -1,6 +1,7 @@
 import { useState } from "react";
 import api from "../../../../lib/api";
 import { Upload, Loader2, CheckCircle, Save, FileText, ArrowRightLeft } from "lucide-react";
+import { narrativesApi } from "../../../Manager/services/narratives.api";
 
 interface LineItem {
   description: string;
@@ -25,14 +26,37 @@ const UploadPage = () => {
   const [uploading, setUploading] = useState(false);
   const [extractedData, setExtractedData] = useState<ExtractedData | null>(null);
   const [saving, setSaving] = useState(false);
+  const [savingReport, setSavingReport] = useState(false);
+  const [reportTitle, setReportTitle] = useState("");
+  const [reportSummary, setReportSummary] = useState("");
+  const [reportNotice, setReportNotice] = useState<string | null>(null);
   
   const [entryType, setEntryType] = useState<'DEBIT' | 'CREDIT'>('DEBIT');
+
+  const buildReportSummary = (data: ExtractedData) => {
+    const lineItems = data.line_items.length
+      ? data.line_items
+          .map((item) => `${item.description} x${item.quantity} = $${item.total.toFixed(2)}`)
+          .join("; ")
+      : "No line items detected.";
+
+    return [
+      `Vendor: ${data.vendor_name}`,
+      `Invoice number: ${data.invoice_number}`,
+      `Date: ${data.date}`,
+      `Subtotal: $${data.subtotal.toFixed(2)}`,
+      `Tax: $${data.tax_amount.toFixed(2)}`,
+      `Total: $${data.total_amount.toFixed(2)}`,
+      `Line items: ${lineItems}`,
+    ].join("\n");
+  };
 
   const handleUpload = async () => {
     if (!file) return;
     setUploading(true);
     setExtractedData(null);
     setEntryType('DEBIT');
+    setReportNotice(null);
     
     const formData = new FormData();
     formData.append("document", file); 
@@ -46,6 +70,13 @@ const UploadPage = () => {
         alert(`AI Parsing Error: ${response.data.error}`);
       } else {
         setExtractedData(response.data);
+        const summary = buildReportSummary(response.data);
+        setReportSummary(summary);
+        setReportTitle(
+          response.data.vendor_name !== "UNKNOWN"
+            ? `${response.data.vendor_name} Invoice Report`
+            : "Generated OCR Report",
+        );
       }
     } catch (error) {
       console.error("Upload failed", error);
@@ -80,6 +111,34 @@ const UploadPage = () => {
       alert("Failed to save journal entry. Check console for details.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSaveToReports = async () => {
+    if (!file || !extractedData) return;
+    setSavingReport(true);
+    setReportNotice(null);
+
+    const summary = reportSummary.trim() || buildReportSummary(extractedData);
+    const title =
+      reportTitle.trim() ||
+      `${extractedData.vendor_name !== "UNKNOWN" ? extractedData.vendor_name : "OCR"} Report`;
+
+    try {
+      const created = await narrativesApi.createReport({
+        title,
+        summary,
+        extractedText: summary,
+        fileType: file.type || "application/pdf",
+        document: file,
+      });
+
+      setReportNotice(`Saved report "${created.title}" to My Reports.`);
+    } catch (error) {
+      console.error("Failed to save report", error);
+      setReportNotice("Failed to save the report. Please try again.");
+    } finally {
+      setSavingReport(false);
     }
   };
 
@@ -176,6 +235,29 @@ const UploadPage = () => {
                 </div>
               </div>
 
+              <div className="space-y-3 rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4">
+                <div>
+                  <label className="text-xs text-gray-500 font-bold uppercase">Report Title</label>
+                  <input
+                    type="text"
+                    className="w-full border p-2 rounded focus:ring-2 focus:ring-[#1D4ED8] outline-none"
+                    value={reportTitle}
+                    onChange={(e) => setReportTitle(e.target.value)}
+                    placeholder="Choose a report title"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 font-bold uppercase">Report Summary</label>
+                  <textarea
+                    rows={5}
+                    className="w-full border p-2 rounded focus:ring-2 focus:ring-[#1D4ED8] outline-none"
+                    value={reportSummary}
+                    onChange={(e) => setReportSummary(e.target.value)}
+                    placeholder="Short technical summary for My Reports"
+                  />
+                </div>
+              </div>
+
               {/* Debit / Credit Toggle */}
               <div>
                 <label className="text-xs text-gray-500 font-bold uppercase mb-2 block">Entry Type</label>
@@ -262,6 +344,19 @@ const UploadPage = () => {
               {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
               {saving ? "Saving to Prisma..." : "Approve & Save to Ledger"}
             </button>
+
+            <button
+              onClick={handleSaveToReports}
+              disabled={savingReport}
+              className="w-full py-3 bg-slate-900 text-white font-semibold rounded hover:bg-slate-800 transition disabled:opacity-50 flex justify-center items-center gap-2 cursor-pointer"
+            >
+              {savingReport ? <Loader2 size={18} className="animate-spin" /> : <FileText size={18} />}
+              {savingReport ? "Saving report..." : "Save to My Reports"}
+            </button>
+
+            {reportNotice && (
+              <p className="text-sm font-medium text-slate-700">{reportNotice}</p>
+            )}
           </div>
         )}
       </div>

@@ -3,6 +3,7 @@ import Cookies from 'js-cookie';
 import { jwtDecode, type JwtPayload } from 'jwt-decode';
 
 export const UserRole = {
+  ADMIN: 'ADMIN',
   ACCOUNTANT: 'ACCOUNTANT',
   AUDITOR: 'AUDITOR',
   COMPLIANCE: 'COMPLIANCE',

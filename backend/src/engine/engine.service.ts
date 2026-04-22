@@ -3,35 +3,105 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable prettier/prettier */
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { AxiosRequestConfig } from 'axios';
+import FormData from 'form-data';
 import { lastValueFrom } from 'rxjs';
+
+export interface JournalAnalysisPayload {
+  description: string;
+  debit: number;
+  credit: number;
+  reference: string;
+}
+
+export interface ReconciliationAnalysisPayload {
+  bank_balance: number;
+  ledger_balance: number;
+  notes: string;
+}
+
+export interface FiscalClosePayload {
+  journals: unknown[];
+  tasks: unknown[];
+}
+
+export interface ForecastPayload {
+  historical_data: unknown[];
+}
+
+export interface CopilotPayload {
+  role: string;
+  message: string;
+  context: string;
+  history: unknown[];
+}
 
 @Injectable()
 export class EngineService {
+  private readonly engineUrl = process.env.ENGINE_URL || 'http://localhost:8000';
+
   constructor(private readonly httpService: HttpService) {}
 
-  async analyzeWithAI(journalData: { description: string; debit: number; credit: number; reference: string }) {
+  private async postToEngine<T>(
+    path: string,
+    payload: unknown,
+    config?: AxiosRequestConfig,
+  ): Promise<T> {
     try {
       const response = await lastValueFrom(
-        this.httpService.post(`${process.env.ENGINE_URL || 'http://localhost:8000'}/analyze-journal`, journalData),
+        this.httpService.post<T>(`${this.engineUrl}${path}`, payload, config),
       );
+
       return response.data;
     } catch (error) {
-      console.error('Python Engine Error:', error);
+      console.error(`Python Engine Error (${path}):`, error);
       throw new InternalServerErrorException('AI Engine is currently unreachable.');
     }
   }
 
-  async extractWithAI(file: Express.Multer.File) {
-    const formData = new FormData();
-    const fileBlob = new Blob([new Uint8Array(file.buffer)], { type: file.mimetype });
-    formData.append('file', fileBlob, file.originalname);
-    const response = await lastValueFrom(
-      this.httpService.post(`${process.env.ENGINE_URL || 'http://localhost:8000'}/extract-document`, formData, {
-      })
-    );
+  async analyzeJournal(journalData: JournalAnalysisPayload) {
+    return this.postToEngine('/analyze-journal', journalData);
+  }
 
-    return response.data;
+  async analyzeWithAI(journalData: JournalAnalysisPayload) {
+    return this.analyzeJournal(journalData);
+  }
+
+  async analyzeReconciliation(payload: ReconciliationAnalysisPayload) {
+    return this.postToEngine('/analyze-reconciliation', payload);
+  }
+
+  async orchestrateFiscalClose(payload: FiscalClosePayload) {
+    return this.postToEngine('/orchestrate-fiscal-close', payload);
+  }
+
+  async predictForecast(payload: ForecastPayload) {
+    return this.postToEngine('/predict-forecast', payload);
+  }
+
+  async predictWhatIf(payload: ForecastPayload) {
+    return this.postToEngine('/predict-what-if', payload);
+  }
+
+  async runCopilotRag(payload: CopilotPayload) {
+    return this.postToEngine('/copilot/rag', payload);
+  }
+
+  async extractWithAI(file: Express.Multer.File) {
+    if (!file) {
+      throw new InternalServerErrorException('No document was provided for OCR extraction.');
+    }
+
+    const formData = new FormData();
+    formData.append('file', file.buffer, {
+      filename: file.originalname,
+      contentType: file.mimetype,
+    });
+
+    return this.postToEngine('/extract-document', formData, {
+      headers: formData.getHeaders(),
+    });
   }
 }

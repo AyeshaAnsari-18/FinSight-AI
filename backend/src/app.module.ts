@@ -5,6 +5,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { JournalsModule } from './journals/journals.module';
@@ -22,8 +24,10 @@ import { NarrativesModule } from './narratives/narratives.module';
 import { AuditorModule } from './auditor/auditor.module';
 import { CopilotModule } from './copilot/copilot.module';
 import { SearchModule } from './search/search.module';
+import { AdminTestModule } from './admin-test/admin-test.module';
 
 @Module({
+  controllers: [AppController],
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     PrometheusModule.register(),
@@ -43,8 +47,10 @@ import { SearchModule } from './search/search.module';
     AuditorModule,
     CopilotModule,
     SearchModule,
+    AdminTestModule,
   ],
   providers: [
+    AppService,
     {
       provide: APP_GUARD,
       useClass: AtGuard,

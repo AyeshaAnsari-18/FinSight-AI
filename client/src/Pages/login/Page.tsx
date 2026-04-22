@@ -43,6 +43,9 @@ export default function Login() {
 
         
         switch (user.role) {
+          case 'ADMIN':
+            navigate("/admin-test");
+            break;
           case 'ACCOUNTANT':
             navigate("/accountant");
             break;

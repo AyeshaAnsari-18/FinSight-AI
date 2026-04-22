@@ -111,6 +111,7 @@ model Document {
   id        String   @id @default(uuid())
   fileName  String
   fileUrl   String   
+  generatedFileUrl String?
   fileType  String   
   
   extractedText String? @db.Text
@@ -168,6 +169,23 @@ model FiscalClose {
   updatedAt    DateTime @updatedAt
 }
 
+model AdminTestReport {
+  id          String   @id @default(uuid())
+  title       String
+  status      String
+  mode        String
+  includeAi   Boolean  @default(false)
+  summary     Json
+  results     Json
+  startedAt   DateTime
+  finishedAt  DateTime?
+  pdfPath     String
+  reportUrl   String
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 
 model ChatMessage {
   id        String   @id @default(uuid())
@@ -176,4 +194,4 @@ model ChatMessage {
   role      String   
   content   String   @db.Text
   createdAt DateTime @default(now())
-}
+}

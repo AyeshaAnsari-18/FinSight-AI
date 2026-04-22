@@ -29,6 +29,7 @@ services:
     volumes:
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - grafana_data:/var/lib/grafana
 
   blackbox:
     image: prom/blackbox-exporter:latest
@@ -38,3 +39,4 @@ services:
 
 volumes:
   prometheus_data:
+  grafana_data:

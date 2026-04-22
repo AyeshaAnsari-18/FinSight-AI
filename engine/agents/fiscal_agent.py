@@ -2,10 +2,10 @@ import os
 from dotenv import load_dotenv
 from typing import TypedDict, List
 from langgraph.graph import StateGraph, END
-from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from pydantic import BaseModel, Field
+from core.llm_setup import get_llm
 
 load_dotenv()
 
@@ -24,8 +24,8 @@ class AgentState(TypedDict):
 def llm_analysis_node(state: AgentState):
     data = state["journal_data"]
     
-    # Initialize the real LLM (Llama 3 via Groq is incredibly fast for this)
-    llm = ChatGroq(temperature=0, model_name="llama3-8b-8192")
+    # Use the centrally configured supported Groq model.
+    llm = get_llm(temperature=0)
     
     # Set up the parser to force JSON output
     parser = JsonOutputParser(pydantic_object=RiskAnalysis)

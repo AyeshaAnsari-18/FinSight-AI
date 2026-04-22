@@ -9,6 +9,7 @@ import VendorReconcilePage from "../pages/Reconcile/VendorReconcilePage";
 import JournalEntriesPage from "../pages/Journals/JournalEntriesPage";
 import AlertsPage from "../pages/Alerts/AlertsPage";
 import MyReportsPage from "../pages/Reports/MyReportsPage";
+import InvoiceViewerPage from "../pages/Reports/InvoiceViewerPage";
 import CopilotPage from "../pages/Copilot/CopilotPage";
 import SearchPage from "../../../Pages/search/SearchPage";
 
@@ -19,6 +20,7 @@ const AccountantRoutes = () => {
       <Route path="alerts" element={<AlertsPage />} />
       <Route path="copilot" element={<CopilotPage />} />
       <Route path="reports" element={<MyReportsPage />} />
+      <Route path="reports/:id/invoice" element={<InvoiceViewerPage />} />
       <Route path="journals" element={<JournalEntriesPage />} />
       <Route path="upload" element={<UploadPage />} />
       <Route path="tasks/accruals" element={<AccrualsPage />} />

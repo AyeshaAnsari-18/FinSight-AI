@@ -52,7 +52,7 @@ export class DashboardService {
       alerts: alerts.map(alert => ({
         id: alert.id,
         message: `${alert.description}: ${alert.flagReason}`,
-        severity: alert.riskScore ?? 0 > 80 ? 'high' : 'medium',
+        severity: (alert.riskScore ?? 0) > 80 ? 'high' : 'medium',
       }))
     };
   }
