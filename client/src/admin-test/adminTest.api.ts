@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL || "/api";
 const ACCESS_TOKEN_KEY = "admin_test_access_token";
 const REFRESH_TOKEN_KEY = "admin_test_refresh_token";
 

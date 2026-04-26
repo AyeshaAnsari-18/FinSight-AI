@@ -271,7 +271,7 @@ export class NarrativesService {
         ? `${previewSource.slice(0, 180).trimEnd()}...`
         : previewSource || 'No summary available yet.';
     const invoiceUrl = materialized.fileUrl;
-    const reportUrl = materialized.generatedFileUrl || '';
+    const reportUrl = this.buildReportUrl(materialized.id);
     const invoiceAvailable = Boolean(materialized.invoiceAvailable);
     const reportAvailable = Boolean(materialized.reportAvailable);
 
