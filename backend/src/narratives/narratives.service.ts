@@ -2,11 +2,16 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { createWriteStream } from 'fs';
-import { access, mkdir, writeFile } from 'fs/promises';
+import { access, mkdir, readFile, unlink, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { finished } from 'stream/promises';
 import PDFDocument from 'pdfkit';
 import { PrismaService } from '../../prisma/prisma.service';
+import {
+  decryptText,
+  encryptBuffer,
+  encryptText,
+} from '../common/security/data-protection';
 
 type NarrativeReportRecord = {
   id: string;
@@ -68,11 +73,11 @@ export class NarrativesService {
   }
 
   private getInvoicePath(id: string) {
-    return join(this.getStorageDirectory(), `invoice-${id}.pdf`);
+    return join(this.getStorageDirectory(), `invoice-${id}.pdf.enc`);
   }
 
   private getReportPath(id: string) {
-    return join(this.getStorageDirectory(), `report-${id}.pdf`);
+    return join(this.getStorageDirectory(), `report-${id}.pdf.enc`);
   }
 
   private buildInvoiceUrl(id: string) {
@@ -96,6 +101,20 @@ export class NarrativesService {
     }
   }
 
+  private materializeReport(report: NarrativeReportRecord): NarrativeReportRecord {
+    return {
+      ...report,
+      fileName: decryptText(report.fileName) || report.fileName,
+      fileUrl: decryptText(report.fileUrl) || report.fileUrl,
+      generatedFileUrl: report.generatedFileUrl
+        ? decryptText(report.generatedFileUrl) || null
+        : null,
+      fileType: decryptText(report.fileType) || report.fileType,
+      extractedText: decryptText(report.extractedText) || null,
+      summary: decryptText(report.summary) || null,
+    };
+  }
+
   private async findInvoiceFilePath(id: string) {
     const currentPath = this.getInvoicePath(id);
     if (await this.fileExists(currentPath)) {
@@ -105,7 +124,34 @@ export class NarrativesService {
     const legacyFiles = await import('fs/promises').then(({ readdir }) =>
       readdir(this.getStorageDirectory()).catch(() => [] as string[]),
     );
-    const legacyMatch = legacyFiles.find((name) => name.startsWith(`${id}-`));
+    const legacyMatch = legacyFiles.find(
+      (name) =>
+        name.startsWith(`invoice-${id}`) ||
+        name.startsWith(`${id}-`) ||
+        (name.includes(id) && (name.endsWith('.pdf') || name.endsWith('.enc'))),
+    );
+    if (!legacyMatch) {
+      return null;
+    }
+
+    return join(this.getStorageDirectory(), legacyMatch);
+  }
+
+  private async findReportFilePath(id: string) {
+    const currentPath = this.getReportPath(id);
+    if (await this.fileExists(currentPath)) {
+      return currentPath;
+    }
+
+    const legacyFiles = await import('fs/promises').then(({ readdir }) =>
+      readdir(this.getStorageDirectory()).catch(() => [] as string[]),
+    );
+    const legacyMatch = legacyFiles.find(
+      (name) =>
+        name.startsWith(`report-${id}`) ||
+        name.startsWith(`${id}-`) ||
+        (name.includes(id) && (name.endsWith('.pdf') || name.endsWith('.enc'))),
+    );
     if (!legacyMatch) {
       return null;
     }
@@ -121,12 +167,13 @@ export class NarrativesService {
     await this.ensureStorageDirectory();
 
     const generatedAt = new Date();
+    const tempPath = filePath.endsWith('.enc') ? filePath.slice(0, -4) : `${filePath}.tmp`;
     const doc = new PDFDocument({
       size: 'A4',
       margin: 48,
       bufferPages: true,
     });
-    const stream = createWriteStream(filePath);
+    const stream = createWriteStream(tempPath);
 
     doc.pipe(stream);
 
@@ -210,33 +257,37 @@ export class NarrativesService {
 
     doc.end();
     await finished(stream);
+    const plainBuffer = await readFile(tempPath);
+    await writeFile(filePath, encryptBuffer(plainBuffer));
+    await unlink(tempPath).catch(() => undefined);
   }
 
   private normalizeReport(report: NarrativeReportRecord): NormalizedNarrativeReport {
-    const createdAt = new Date(report.createdAt);
-    const previewSource = report.summary || report.extractedText || '';
+    const materialized = this.materializeReport(report);
+    const createdAt = new Date(materialized.createdAt);
+    const previewSource = materialized.summary || materialized.extractedText || '';
     const content =
       previewSource.length > 180
         ? `${previewSource.slice(0, 180).trimEnd()}...`
         : previewSource || 'No summary available yet.';
-    const invoiceUrl = report.fileUrl;
-    const reportUrl = report.generatedFileUrl || '';
-    const invoiceAvailable = Boolean(report.invoiceAvailable);
-    const reportAvailable = Boolean(report.reportAvailable);
+    const invoiceUrl = materialized.fileUrl;
+    const reportUrl = materialized.generatedFileUrl || '';
+    const invoiceAvailable = Boolean(materialized.invoiceAvailable);
+    const reportAvailable = Boolean(materialized.reportAvailable);
 
     return {
-      recordId: report.id,
-      id: report.id.substring(0, 8).toUpperCase(),
-      title: report.fileName,
-      author: report.uploadedBy?.name || report.uploadedBy?.email || 'System Generated',
+      recordId: materialized.id,
+      id: materialized.id.substring(0, 8).toUpperCase(),
+      title: materialized.fileName,
+      author: materialized.uploadedBy?.name || materialized.uploadedBy?.email || 'System Generated',
       period: createdAt.toLocaleDateString(undefined, {
         month: 'short',
         year: 'numeric',
       }),
       content,
       createdAt: createdAt.toISOString(),
-      status: report.summary || report.extractedText ? 'Completed' : 'Draft',
-      fileType: report.fileType,
+      status: materialized.summary || materialized.extractedText ? 'Completed' : 'Draft',
+      fileType: materialized.fileType,
       invoiceUrl,
       reportUrl,
       downloadUrl: reportUrl,
@@ -246,45 +297,38 @@ export class NarrativesService {
   }
 
   private async ensureGeneratedReport(report: NarrativeReportRecord) {
-    if (!report.summary && !report.extractedText) {
-      return report;
+    const materialized = this.materializeReport(report);
+
+    if (!materialized.summary && !materialized.extractedText) {
+      return materialized;
     }
 
-    const reportPath = this.getReportPath(report.id);
-    const reportUrl = this.buildReportUrl(report.id);
+    const reportPath = this.getReportPath(materialized.id);
+    const reportUrl = this.buildReportUrl(materialized.id);
     const reportAvailable = await this.fileExists(reportPath);
 
     if (!reportAvailable) {
-      await this.writeReportPdf(reportPath, report);
+      await this.writeReportPdf(reportPath, materialized);
     }
 
-    if (report.generatedFileUrl !== reportUrl) {
+    if (materialized.generatedFileUrl !== reportUrl) {
       const updated = await this.prisma.document.update({
-        where: { id: report.id },
-        data: { generatedFileUrl: reportUrl },
+        where: { id: materialized.id },
+        data: { generatedFileUrl: encryptText(reportUrl) },
         include: { uploadedBy: true },
       });
 
-      return updated as NarrativeReportRecord;
+      return this.materializeReport(updated as NarrativeReportRecord);
     }
 
-    return report;
+    return materialized;
   }
 
   async findAll(search?: string) {
     const query = search?.trim();
+    const searchLower = query?.toLowerCase() || '';
 
     const reports = (await this.prisma.document.findMany({
-      where: query
-        ? {
-            OR: [
-              { fileName: { contains: query, mode: 'insensitive' } },
-              { fileType: { contains: query, mode: 'insensitive' } },
-              { summary: { contains: query, mode: 'insensitive' } },
-              { extractedText: { contains: query, mode: 'insensitive' } },
-            ],
-          }
-        : undefined,
       include: { uploadedBy: true },
       orderBy: { createdAt: 'desc' },
       take: 50,
@@ -292,21 +336,35 @@ export class NarrativesService {
 
     const materializedReports = await Promise.all(
       reports.map(async (report) => {
-        const enriched = await this.ensureGeneratedReport(report);
-        const invoicePath = await this.findInvoiceFilePath(enriched.id);
-        const reportPath = this.getReportPath(enriched.id);
-        return {
-          ...enriched,
+        const materialized = await this.ensureGeneratedReport(report);
+        const invoicePath = await this.findInvoiceFilePath(materialized.id);
+        const reportPath = await this.findReportFilePath(materialized.id);
+        const decorated = {
+          ...materialized,
           invoiceAvailable: Boolean(invoicePath),
-          reportAvailable: await this.fileExists(reportPath),
+          reportAvailable: reportPath ? await this.fileExists(reportPath) : false,
         } as NarrativeReportRecord & {
           invoiceAvailable: boolean;
           reportAvailable: boolean;
         };
+
+        return decorated;
       }),
     );
 
-    return materializedReports.map((report) => this.normalizeReport(report));
+    const filteredReports = query
+      ? materializedReports.filter((report) =>
+          [
+            report.id,
+            report.fileName,
+            report.fileType,
+            report.summary || '',
+            report.extractedText || '',
+          ].some((value) => value.toLowerCase().includes(searchLower)),
+        )
+      : materializedReports;
+
+    return filteredReports.map((report) => this.normalizeReport(report));
   }
 
   async createReport(
@@ -360,12 +418,12 @@ export class NarrativesService {
     const created = (await this.prisma.document.create({
       data: {
         id: reportId,
-        fileName,
-        fileUrl: invoiceUrl,
-        generatedFileUrl: reportUrl,
-        fileType,
-        extractedText,
-        summary,
+        fileName: encryptText(fileName),
+        fileUrl: encryptText(invoiceUrl),
+        generatedFileUrl: encryptText(reportUrl),
+        fileType: encryptText(fileType),
+        extractedText: extractedText ? encryptText(extractedText) : null,
+        summary: summary ? encryptText(summary) : null,
         uploadedById: userId,
       },
       include: { uploadedBy: true },
@@ -376,7 +434,7 @@ export class NarrativesService {
 
   private async writeFileBuffer(filePath: string, buffer: Buffer) {
     await this.ensureStorageDirectory();
-    await writeFile(filePath, buffer);
+    await writeFile(filePath, encryptBuffer(buffer));
   }
 
   async getReportById(id: string) {
@@ -393,8 +451,8 @@ export class NarrativesService {
   }
 
   async getReportFilePath(id: string) {
-    const filePath = this.getReportPath(id);
-    if (!(await this.fileExists(filePath))) {
+    const filePath = await this.findReportFilePath(id);
+    if (!filePath || !(await this.fileExists(filePath))) {
       throw new NotFoundException('Stored report file not found.');
     }
     return filePath;

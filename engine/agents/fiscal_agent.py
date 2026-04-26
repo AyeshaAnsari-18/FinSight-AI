@@ -6,6 +6,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from pydantic import BaseModel, Field
 from core.llm_setup import get_llm
+from core.prompts import SECURITY_PREAMBLE, render_untrusted_payload
 
 load_dotenv()
 
@@ -31,8 +32,10 @@ def llm_analysis_node(state: AgentState):
     parser = JsonOutputParser(pydantic_object=RiskAnalysis)
     
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are an expert forensic accountant AI. Analyze the following journal entry for anomalies, fraud risks, or compliance issues. Output your findings strictly in JSON format as instructed.\n{format_instructions}"),
-        ("human", "Journal Entry Data:\nDescription: {description}\nDebit: {debit}\nCredit: {credit}\nReference: {reference}")
+        ("system", SECURITY_PREAMBLE + """
+You are an expert forensic accountant AI. Analyze the following journal entry for anomalies, fraud risks, or compliance issues. Output your findings strictly in JSON format as instructed.
+{format_instructions}"""),
+        ("human", "Journal Entry Data (untrusted):\n{journal_block}")
     ])
     
     chain = prompt | llm | parser
@@ -44,6 +47,7 @@ def llm_analysis_node(state: AgentState):
             "debit": data.get("debit"),
             "credit": data.get("credit"),
             "reference": data.get("reference"),
+            "journal_block": render_untrusted_payload(data),
             "format_instructions": parser.get_format_instructions()
         })
     except Exception as e:

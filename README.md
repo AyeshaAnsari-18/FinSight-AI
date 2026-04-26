@@ -1,19 +1,95 @@
-# FinSight AI 🚀
+# FinSight AI
 
-FinSight AI is a next-generation Enterprise Risk & Compliance platform designed for mid-to-large financial teams. It unifies accounting pipelines, automated internal auditing, compliance policy matching, and strict Role-Based Access Controls under a single intelligent system powered by an embedded AI Copilot via LangChain and Llama3.
+FinSight AI is an enterprise finance, bookkeeping, audit, and compliance platform built around a NestJS backend, React frontend, and a FastAPI AI engine.
 
-## Features
-- **Strict Role-Based Experiences**: Isolated environments for `ACCOUNTANT`, `AUDITOR`, `COMPLIANCE`, and `MANAGER` roles. Each role sees customized dashboards, global searches, and tailored navigation.
-- **Continuous Audit Engine**: Automated detection of duplicate payments, anomalous journal entries, and unauthorized ledger modifications.
-- **RAG-Powered AI Copilot**: A secure role-aware chat interface built with FastAPI, LangChain, and Groq's Llama-3.1-8b that helps users understand policy and investigate risks based *only* on what their role allows. It integrates context across policies, journals, text, and tasks.
-- **Unified Global Search**: Robust cross-domain search querying Tasks, Journals, Documents, and Policies natively with ID mapping and intelligent redirection across the entire platform.
-- **Database Architecture**: Powered by Supabase (PostgreSQL) and Prisma ORM for maximum scalability, data persistence, and type-safety.
+## Security Model
 
-## Architecture & Project Structure
-The repository is split into three core microservices:
+This project uses layered security, not literal client-side end-to-end encryption. Because the backend and engine must read business data to process journals, reconciliations, reports, OCR, and copilots, the practical model is:
 
-1. `/backend` - The primary transactional **NestJS** REST API, Auth service, and Supabase/Prisma engine.
-2. `/client` - The frontend **React/Vite/Tailwind** SPA with Redux Toolkit for complex state management caching.
-3. `/engine` - The **FastAPI** Python microservice executing the LangChain AI agent workflows utilizing Groq LLaMA models.
+- Transport security over HTTPS/TLS in deployment.
+- Password hashing with Argon2.
+- Refresh token hashing with Argon2.
+- Sensitive business fields encrypted at rest with AES-256-GCM.
+- File artifacts such as uploaded invoices, generated reports, and admin-test PDFs stored encrypted on disk.
+- Prompt-injection hardening inside the engine so user, OCR, and database content is treated as untrusted data.
 
-Check the `README.md` in each respective directory for local development setup instructions!
+### What is hashed
+
+- `User.password`
+- `User.hashedRefreshToken`
+
+### What is encrypted at rest
+
+Backend database fields are encrypted before save and decrypted in service code before use:
+
+- Journal entries: `description`, `reference`, `flagReason`
+- Reconciliations: `notes`
+- Tasks: `title`, `description`
+- Policies: `title`, `content`, `category`
+- Audit logs: `details`, `ipAddress`
+- Risk controls: `riskName`, `controlDesc`
+- Chat history: `content`
+- Documents / reports: `fileName`, `fileUrl`, `generatedFileUrl`, `fileType`, `extractedText`, `summary`
+- Admin test reports: `title`, `status`, `mode`, `summary`, `results`, `pdfPath`, `reportUrl`, `createdBy`
+
+PDF files are stored in encrypted form under:
+
+- `backend/storage/documents`
+- `backend/storage/admin-test-reports`
+
+### Encryption details
+
+- Algorithm: AES-256-GCM
+- Envelope format: `enc:v1|iv|tag|ciphertext`
+- Key source: `DATA_ENCRYPTION_KEY` in `backend/.env`
+- Existing plaintext rows and files can be re-saved with:
+
+```bash
+cd backend
+npm run backfill:security
+```
+
+## How the flow works
+
+1. The frontend sends a normal HTTPS request.
+2. The backend encrypts sensitive text fields before writing to Postgres or local storage.
+3. The backend stores hashed auth secrets and encrypted business data.
+4. When the app needs to display data, the backend decrypts only the fields it needs for that trusted request.
+5. The engine receives only the minimum trusted payload it needs, and all database/history/OCR content is labeled as untrusted in prompts.
+
+## Engine Hardening
+
+The engine prompts now use a security preamble that:
+
+- Treats OCR text, database context, and conversation history as untrusted.
+- Rejects prompt injection attempts that try to override system instructions.
+- Forces structured output where JSON is expected.
+- Keeps role-based access control explicit in the copilot flow.
+
+This reduces prompt-engineering risk, but it does not make server-side AI magically tamper-proof. The real safety boundary is still trusted backend code plus strict role checks plus encrypted-at-rest storage.
+
+## Project Layout
+
+- `backend` - NestJS REST API, auth, journals, reconciliation, reports, admin-test, and database access.
+- `client` - React/Vite/Tailwind frontend.
+- `engine` - FastAPI AI orchestrator and LangChain agents.
+
+## Useful Commands
+
+Backend:
+
+```bash
+cd backend
+npm install
+npm run build
+npm test -- --runInBand
+npm run backfill:security
+```
+
+Engine:
+
+```bash
+cd engine
+python -m compileall .
+```
+

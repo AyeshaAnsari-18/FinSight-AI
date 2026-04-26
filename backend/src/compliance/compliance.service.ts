@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { decryptText, encryptText } from '../common/security/data-protection';
 import { CreateComplianceDto } from './dto/create-compliance.dto';
 
 @Injectable()
@@ -9,8 +10,8 @@ export class ComplianceService {
   async create(dto: CreateComplianceDto) {
     return this.prisma.riskControl.create({
       data: {
-        riskName: dto.riskName,
-        controlDesc: dto.controlDesc,
+        riskName: encryptText(dto.riskName),
+        controlDesc: encryptText(dto.controlDesc),
         status: dto.status,
         lastTested: dto.lastTested ? new Date(dto.lastTested) : null,
       },
@@ -27,17 +28,24 @@ export class ComplianceService {
     });
     return risks.map((r) => ({
       id: r.id.substring(0, 8).toUpperCase(),
-      control: r.riskName,
-      desc: r.controlDesc,
+      control: decryptText(r.riskName) || '',
+      desc: decryptText(r.controlDesc) || '',
       status: r.status,
       tested: r.lastTested ? r.lastTested.toISOString().split('T')[0] : 'Not tested',
     }));
   }
 
   async getPolicies() {
-    return this.prisma.policy.findMany({
+    const policies = await this.prisma.policy.findMany({
       orderBy: { createdAt: 'desc' },
     });
+
+    return policies.map((policy) => ({
+      ...policy,
+      title: decryptText(policy.title) || '',
+      content: decryptText(policy.content) || '',
+      category: decryptText(policy.category) || policy.category,
+    }));
   }
 
   async getMonitoring() {

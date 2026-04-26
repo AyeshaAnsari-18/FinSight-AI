@@ -14,6 +14,13 @@ import { promises as fsp } from 'fs';
 import * as path from 'path';
 import PDFDocument from 'pdfkit';
 import { PrismaService } from '../../prisma/prisma.service';
+import {
+  decryptJsonValue,
+  decryptText,
+  encryptBuffer,
+  encryptJsonValue,
+  encryptText,
+} from '../common/security/data-protection';
 import { AuthService } from '../auth/auth.service';
 import { AdminTestLoginDto } from './dto/admin-test-login.dto';
 import { RunAdminTestDto } from './dto/run-admin-test.dto';
@@ -235,9 +242,10 @@ export class AdminTestService {
       throw new NotFoundException('Admin test report not found.');
     }
 
-    const fallbackPath = path.join(this.reportDirectory, path.basename(report.pdfPath));
-    const filePath = fs.existsSync(report.pdfPath)
-      ? report.pdfPath
+    const pdfPath = decryptText(report.pdfPath) || report.pdfPath;
+    const fallbackPath = path.join(this.reportDirectory, path.basename(pdfPath));
+    const filePath = fs.existsSync(pdfPath)
+      ? pdfPath
       : fs.existsSync(fallbackPath)
         ? fallbackPath
         : await this.recoverMissingPdf(report);
@@ -370,24 +378,24 @@ export class AdminTestService {
 
     const report = await this.adminReportStore.adminTestReport.create({
       data: {
-        title,
-        status: summary.failed > 0 ? 'FAILED' : 'PASSED',
-        mode: includeAi ? 'FULL' : 'SAFE',
+        title: encryptText(title),
+        status: encryptText(summary.failed > 0 ? 'FAILED' : 'PASSED'),
+        mode: encryptText(includeAi ? 'FULL' : 'SAFE'),
         includeAi,
-        summary,
-        results,
+        summary: encryptJsonValue(summary),
+        results: encryptJsonValue(results),
         startedAt,
         finishedAt,
-        pdfPath,
-        reportUrl: '',
-        createdBy: requestedBy,
+        pdfPath: encryptText(pdfPath),
+        reportUrl: encryptText(''),
+        createdBy: encryptText(requestedBy),
       },
     });
 
     const reportUrl = `/admin-test/reports/${report.id}/download`;
     const updated = await this.adminReportStore.adminTestReport.update({
       where: { id: report.id },
-      data: { reportUrl },
+      data: { reportUrl: encryptText(reportUrl) },
     });
 
     return this.serializeReport(updated);
@@ -1417,16 +1425,17 @@ export class AdminTestService {
   }) {
     await fsp.mkdir(this.reportDirectory, { recursive: true });
 
-    const filePath =
+    const finalPath =
       payload.outputPath ||
       path.join(
         this.reportDirectory,
-        `${payload.finishedAt.toISOString().replace(/[:.]/g, '-')}.pdf`,
+        `${payload.finishedAt.toISOString().replace(/[:.]/g, '-')}.pdf.enc`,
       );
+    const tempPath = finalPath.endsWith('.enc') ? finalPath.slice(0, -4) : `${finalPath}.tmp`;
 
     await new Promise<void>((resolve, reject) => {
       const doc = new PDFDocument({ margin: 40, size: 'A4' });
-      const stream = fs.createWriteStream(filePath);
+      const stream = fs.createWriteStream(tempPath);
       const addPageIfNeeded = (minimumSpace = 96) => {
         if (doc.y + minimumSpace > doc.page.height - doc.page.margins.bottom) {
           doc.addPage();
@@ -1544,7 +1553,11 @@ export class AdminTestService {
       stream.on('error', (error) => reject(error));
     });
 
-    return filePath;
+    const plainPdf = await fsp.readFile(tempPath);
+    await fsp.writeFile(finalPath, encryptBuffer(plainPdf));
+    await fsp.unlink(tempPath).catch(() => undefined);
+
+    return finalPath;
   }
 
   private async recoverMissingPdf(report: AdminTestReportRecord) {
@@ -1552,14 +1565,20 @@ export class AdminTestService {
     const summary = this.normalizeStoredSummary(report.summary, results);
     const recoveredPath = path.join(
       this.reportDirectory,
-      `${report.id}-recovered.pdf`,
+      `${report.id}-recovered.pdf.enc`,
     );
+    const startedAt = report.startedAt instanceof Date ? report.startedAt : new Date(report.startedAt);
+    const finishedAt = report.finishedAt
+      ? report.finishedAt instanceof Date
+        ? report.finishedAt
+        : new Date(report.finishedAt)
+      : new Date(report.updatedAt);
 
     await this.writePdfReport({
-      title: report.title,
-      requestedBy: report.createdBy,
-      startedAt: report.startedAt,
-      finishedAt: report.finishedAt || report.updatedAt,
+      title: decryptText(report.title) || report.title,
+      requestedBy: decryptText(report.createdBy) || report.createdBy,
+      startedAt,
+      finishedAt,
       includeAi: report.includeAi,
       summary,
       results,
@@ -1569,7 +1588,7 @@ export class AdminTestService {
     if (fs.existsSync(recoveredPath)) {
       await this.adminReportStore.adminTestReport.update({
         where: { id: report.id },
-        data: { pdfPath: recoveredPath },
+        data: { pdfPath: encryptText(recoveredPath) },
       });
       return recoveredPath;
     }
@@ -1578,7 +1597,11 @@ export class AdminTestService {
   }
 
   private normalizeStoredSummary(summary: unknown, results: TestCaseResult[]): TestRunSummary {
-    const raw = (summary && typeof summary === 'object' ? summary : {}) as Partial<TestRunSummary>;
+    const rawValue = decryptJsonValue<unknown>(summary, {});
+    const raw =
+      rawValue && typeof rawValue === 'object' && !Array.isArray(rawValue)
+        ? (rawValue as Partial<TestRunSummary>)
+        : {};
     const passed = raw.passed ?? results.filter((result) => result.status === 'passed').length;
     const failed = raw.failed ?? results.filter((result) => result.status === 'failed').length;
     const skipped = raw.skipped ?? results.filter((result) => result.status === 'skipped').length;
@@ -1610,11 +1633,12 @@ export class AdminTestService {
   }
 
   private normalizeStoredResults(results: unknown): TestCaseResult[] {
-    if (!Array.isArray(results)) {
+    const decrypted = decryptJsonValue<unknown>(results, results);
+    if (!Array.isArray(decrypted)) {
       return [];
     }
 
-    return results
+    return decrypted
       .map((result) => result as Partial<TestCaseResult>)
       .filter((result): result is Partial<TestCaseResult> & { id: string; suiteId: string; suiteLabel: string; label: string; method: string; path: string; role: RoleKey; ai: boolean; status: TestCaseStatus; durationMs: number; message: string } =>
         Boolean(
@@ -1721,10 +1745,25 @@ export class AdminTestService {
   }
 
   private serializeReport(report: AdminTestReportRecord) {
+    const decryptedTitle = decryptText(report.title) || '';
+    const decryptedStatus = decryptText(report.status) || report.status;
+    const decryptedMode = decryptText(report.mode) || report.mode;
+    const decryptedSummary = decryptJsonValue(report.summary, report.summary);
+    const decryptedResults = decryptJsonValue(report.results, report.results);
+    const decryptedPdfPath = decryptText(report.pdfPath) || report.pdfPath;
+    const decryptedReportUrl = decryptText(report.reportUrl) || `/admin-test/reports/${report.id}/download`;
+    const decryptedCreatedBy = decryptText(report.createdBy) || report.createdBy;
+
     return {
       ...report,
-      reportUrl:
-        report.reportUrl || `/admin-test/reports/${report.id}/download`,
+      title: decryptedTitle,
+      status: decryptedStatus,
+      mode: decryptedMode,
+      summary: decryptedSummary,
+      results: decryptedResults,
+      pdfPath: decryptedPdfPath,
+      reportUrl: decryptedReportUrl,
+      createdBy: decryptedCreatedBy,
       startedAt: report.startedAt.toISOString(),
       finishedAt: report.finishedAt ? report.finishedAt.toISOString() : null,
       createdAt: report.createdAt.toISOString(),

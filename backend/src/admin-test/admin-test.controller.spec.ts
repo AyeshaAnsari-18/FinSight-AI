@@ -1,5 +1,10 @@
 import { ForbiddenException } from '@nestjs/common';
+import { readFile } from 'fs/promises';
 import { AdminTestController } from './admin-test.controller';
+
+jest.mock('fs/promises', () => ({
+  readFile: jest.fn(),
+}));
 
 describe('AdminTestController', () => {
   const adminTestService = {
@@ -44,18 +49,28 @@ describe('AdminTestController', () => {
 
   it('downloads reports through the express response object', async () => {
     const res = {
-      download: jest.fn(),
+      status: jest.fn().mockReturnThis(),
+      setHeader: jest.fn().mockReturnThis(),
+      send: jest.fn(),
     };
     adminTestService.getReportFile.mockResolvedValue({
       filePath: 'D:/fahad/FinSight-AI/backend/storage/report.pdf',
       fileName: 'report.pdf',
     });
+    (readFile as jest.Mock).mockResolvedValue(Buffer.from('report-bytes'));
 
     await controller.downloadReport('report-1', 'ADMIN', res as any);
 
-    expect(res.download).toHaveBeenCalledWith(
+    expect(readFile).toHaveBeenCalledWith(
       'D:/fahad/FinSight-AI/backend/storage/report.pdf',
-      'report.pdf',
+    );
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.setHeader).toHaveBeenCalledWith(
+      'Content-Type',
+      'application/pdf',
+    );
+    expect(res.send).toHaveBeenCalledWith(
+      expect.any(Buffer),
     );
   });
 });

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { decryptText } from '../common/security/data-protection';
 
 @Injectable()
 export class AuditorService {
@@ -25,8 +26,14 @@ export class AuditorService {
     const allTasks = await this.prisma.task.findMany({
       where: { status: { not: 'DONE' } }
     });
-    const journalReviewCount = allTasks.filter(t => t.title.toLowerCase().includes('journal')).length;
-    const reconReviewCount = allTasks.filter(t => t.title.toLowerCase().includes('reconciliation') || t.title.toLowerCase().includes('recon')).length;
+    const journalReviewCount = allTasks.filter((task) => {
+      const title = decryptText(task.title)?.toLowerCase() || '';
+      return title.includes('journal');
+    }).length;
+    const reconReviewCount = allTasks.filter((task) => {
+      const title = decryptText(task.title)?.toLowerCase() || '';
+      return title.includes('reconciliation') || title.includes('recon');
+    }).length;
 
     const recentAlertsObj = await this.prisma.journalEntry.findMany({
       where: { status: 'FLAGGED' },
@@ -35,7 +42,9 @@ export class AuditorService {
       select: { flagReason: true, description: true }
     });
 
-    const alerts = recentAlertsObj.map(a => `${a.description}: ${a.flagReason}`);
+    const alerts = recentAlertsObj.map(
+      (a) => `${decryptText(a.description) || ''}: ${decryptText(a.flagReason) || ''}`,
+    );
     if (alerts.length === 0) alerts.push("System automatically checks for unusual transaction patterns.", "Unauthorized journal modification detected", "High variance in vendor reconciliation");
 
     return {
@@ -75,7 +84,7 @@ export class AuditorService {
 
       return {
         id: risk.id.substring(0, 6).toUpperCase(),
-        policy: risk.riskName,
+        policy: decryptText(risk.riskName) || '',
         auditor: dbAuditors[index % dbAuditors.length],
         department: dbDepartments[index % dbDepartments.length],
         lastChecked: risk.lastTested ? risk.lastTested.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
@@ -108,7 +117,7 @@ export class AuditorService {
         department: dept,
         auditor: dbAuditors[index % dbAuditors.length],
         lastAudit: dbRisk?.lastTested ? dbRisk.lastTested.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-        findings: dbRisk?.controlDesc || 'No major findings reported.',
+        findings: decryptText(dbRisk?.controlDesc || '') || 'No major findings reported.',
         status: rowStatus,
       };
     });

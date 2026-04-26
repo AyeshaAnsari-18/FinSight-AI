@@ -2,6 +2,7 @@ import { JournalEntry, JournalStatus, Prisma } from '@prisma/client';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { EngineService } from '../engine/engine.service';
+import { decryptText, encryptText } from '../common/security/data-protection';
 import { AnalyzeJournalDto } from './dto/analyze-journal.dto';
 import { CreateJournalDto } from './dto/create-journal.dto';
 import { JournalReviewDto } from './dto/journal-review.dto';
@@ -46,8 +47,8 @@ export class JournalsService {
     const journal = await this.prisma.journalEntry.create({
       data: {
         date: new Date(dto.date),
-        description: dto.description,
-        reference: dto.reference,
+        description: encryptText(dto.description),
+        reference: encryptText(dto.reference),
         debit: dto.debit,
         credit: dto.credit,
         status: dto.status || 'DRAFT',
@@ -76,8 +77,14 @@ export class JournalsService {
     const journal = await this.prisma.journalEntry.update({
       where: { id },
       data: {
-        ...dto,
         date: dto.date ? new Date(dto.date) : undefined,
+        description:
+          dto.description === undefined ? undefined : encryptText(dto.description),
+        reference:
+          dto.reference === undefined ? undefined : encryptText(dto.reference),
+        debit: dto.debit,
+        credit: dto.credit,
+        status: dto.status,
       },
     });
 
@@ -194,6 +201,9 @@ export class JournalsService {
       updatedAt: journal.updatedAt.toISOString(),
       debit: Number(journal.debit),
       credit: Number(journal.credit),
+      description: decryptText(journal.description) || '',
+      reference: decryptText(journal.reference) || '',
+      flagReason: decryptText(journal.flagReason) || null,
     };
   }
 
@@ -213,12 +223,13 @@ export class JournalsService {
   }
 
   private async analyzeAndPersist(journal: JournalEntry): Promise<JournalReviewResult> {
+    const plainJournal = this.serializeJournal(journal);
     const analysis = this.normalizeAnalysis(
       await this.engineService.analyzeJournal({
-        description: journal.description,
-        debit: Number(journal.debit),
-        credit: Number(journal.credit),
-        reference: journal.reference,
+        description: plainJournal.description,
+        debit: Number(plainJournal.debit),
+        credit: Number(plainJournal.credit),
+        reference: plainJournal.reference,
       }),
     );
 
@@ -226,11 +237,13 @@ export class JournalsService {
       where: { id: journal.id },
       data: {
         riskScore: analysis.riskScore,
-        flagReason: analysis.flags.length ? analysis.flags.join(' | ') : null,
+        flagReason: analysis.flags.length
+          ? encryptText(analysis.flags.join(' | '))
+          : null,
         status:
           analysis.riskScore >= HIGH_RISK_THRESHOLD
             ? JournalStatus.FLAGGED
-            : journal.status,
+            : plainJournal.status,
       },
     });
 

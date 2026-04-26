@@ -1,6 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { decryptText } from '../common/security/data-protection';
 
 @Injectable()
 export class DashboardService {
@@ -33,8 +34,14 @@ export class DashboardService {
     ]);
 
     
-    const accrualTasks = myTasks.filter(t => t.title.toLowerCase().includes('accrual')).length;
-    const taxTasks = myTasks.filter(t => t.title.toLowerCase().includes('tax') || t.title.toLowerCase().includes('gst')).length;
+    const accrualTasks = myTasks.filter((task) => {
+      const title = decryptText(task.title)?.toLowerCase() || '';
+      return title.includes('accrual');
+    }).length;
+    const taxTasks = myTasks.filter((task) => {
+      const title = decryptText(task.title)?.toLowerCase() || '';
+      return title.includes('tax') || title.includes('gst');
+    }).length;
 
     const pendingJournals = journalCounts.find(j => j.status === 'DRAFT')?._count.status || 0;
     const flaggedJournals = journalCounts.find(j => j.status === 'FLAGGED')?._count.status || 0;
@@ -51,7 +58,7 @@ export class DashboardService {
       },
       alerts: alerts.map(alert => ({
         id: alert.id,
-        message: `${alert.description}: ${alert.flagReason}`,
+        message: `${decryptText(alert.description) || ''}: ${decryptText(alert.flagReason) || ''}`,
         severity: (alert.riskScore ?? 0) > 80 ? 'high' : 'medium',
       }))
     };

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { encryptText } from '../common/security/data-protection';
 import { CreateAuditTrailDto } from './dto/create-audit-trail.dto';
 
 @Injectable()
@@ -10,8 +11,8 @@ export class AuditTrailService {
     return this.prisma.auditLog.create({
       data: {
         action: dto.action,
-        details: dto.details,
-        ipAddress: dto.ipAddress,
+        details: dto.details ? encryptText(dto.details) : undefined,
+        ipAddress: dto.ipAddress ? encryptText(dto.ipAddress) : undefined,
         userId: dto.userId,
       },
     });

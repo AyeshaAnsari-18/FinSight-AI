@@ -6,6 +6,7 @@ import { Prisma, Reconciliation, ReconStatus } from '@prisma/client';
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { EngineService } from '../engine/engine.service';
+import { decryptText, encryptText } from '../common/security/data-protection';
 import { AnalyzeReconcileDto } from './dto/analyze-reconcile.dto';
 import { CreateReconcileDto } from './dto/create-reconcile.dto';
 import { ReconcileReviewDto } from './dto/reconcile-review.dto';
@@ -55,7 +56,7 @@ export class ReconcileService {
         ledgerBalance: dto.ledgerBalance,
         variance: aiResult.variance,
         status: aiResult.matched ? 'MATCHED' : 'DISCREPANCY',
-        notes: JSON.stringify(aiResult.discrepancies),
+        notes: encryptText(JSON.stringify(aiResult.discrepancies)),
       },
     });
 
@@ -179,6 +180,7 @@ export class ReconcileService {
       bankBalance: Number(reconciliation.bankBalance),
       ledgerBalance: Number(reconciliation.ledgerBalance),
       variance: Number(reconciliation.variance),
+      notes: decryptText(reconciliation.notes) || null,
     };
   }
 
@@ -217,10 +219,11 @@ export class ReconcileService {
   private async reanalyzeRecord(
     reconciliation: Reconciliation,
   ): Promise<ReconciliationReviewResult> {
+    const plainReconciliation = this.serializeReconciliation(reconciliation);
     const analysis = await this.runAnalysis(
-      Number(reconciliation.bankBalance),
-      Number(reconciliation.ledgerBalance),
-      reconciliation.notes || '',
+      Number(plainReconciliation.bankBalance),
+      Number(plainReconciliation.ledgerBalance),
+      plainReconciliation.notes || '',
     );
 
     const updated = await this.prisma.reconciliation.update({
@@ -228,7 +231,7 @@ export class ReconcileService {
       data: {
         variance: analysis.variance,
         status: analysis.matched ? ReconStatus.MATCHED : ReconStatus.DISCREPANCY,
-        notes: JSON.stringify(analysis.discrepancies),
+        notes: encryptText(JSON.stringify(analysis.discrepancies)),
       },
     });
 
