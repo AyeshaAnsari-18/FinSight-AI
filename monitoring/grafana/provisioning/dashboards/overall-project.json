@@ -342,6 +342,52 @@
         "legend": { "displayMode": "list", "placement": "right", "showLegend": true },
         "tooltip": { "mode": "single", "sort": "desc" }
       }
+    },
+    {
+      "id": 14,
+      "title": "Backend Journal Analysis Requests (Range)",
+      "type": "stat",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 32 },
+      "targets": [
+        {
+          "expr": "sum(increase(http_requests_total{job=\"backend\",path=~\"/journals(/analyze|/review-summary|/.+/analyze)\"}[$__range]))",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "fixedColor": "#2563EB", "mode": "fixed" }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 15,
+      "title": "Backend Reconciliation Requests (Range)",
+      "type": "stat",
+      "datasource": "Prometheus",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 32 },
+      "targets": [
+        {
+          "expr": "sum(increase(http_requests_total{job=\"backend\",path=~\"/reconcile(/analyze|/review-summary|/.+/analyze)\"}[$__range]))",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "fixedColor": "#D97706", "mode": "fixed" }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "value"
+      }
     }
   ],
   "schemaVersion": 38,

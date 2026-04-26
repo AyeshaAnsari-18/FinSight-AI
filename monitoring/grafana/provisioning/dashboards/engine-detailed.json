@@ -16,7 +16,7 @@
       "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
       "targets": [
         {
-          "expr": "sum(increase(http_requests_total{job=\"engine\",handler!~\"/metrics|/docs|/openapi.json\"}[$__range]))",
+          "expr": "sum(increase(http_requests_total{job=\"engine\",handler=~\"/analyze-journal|/analyze-reconciliation|/orchestrate-fiscal-close|/predict-forecast|/predict-what-if|/copilot/rag|/extract-document\"}[$__range]))",
           "refId": "A"
         }
       ],
@@ -47,7 +47,7 @@
       "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
       "targets": [
         {
-          "expr": "sum(max_over_time(active_agents_running[$__range]))",
+          "expr": "sum(max_over_time(active_agents_peak[$__range]))",
           "refId": "A"
         }
       ],
@@ -194,7 +194,7 @@
       "gridPos": { "h": 8, "w": 10, "x": 0, "y": 4 },
       "targets": [
         {
-          "expr": "sum(increase(http_requests_total{job=\"engine\",handler!~\"/metrics|/docs|/openapi.json\"}[$__range])) by (handler)",
+          "expr": "sum(increase(http_requests_total{job=\"engine\",handler=~\"/analyze-journal|/analyze-reconciliation|/orchestrate-fiscal-close|/predict-forecast|/predict-what-if|/copilot/rag|/extract-document\"}[$__range])) by (handler)",
           "legendFormat": "{{handler}}",
           "refId": "A"
         }
@@ -280,7 +280,7 @@
       "gridPos": { "h": 7, "w": 8, "x": 8, "y": 12 },
       "targets": [
         {
-          "expr": "sum(increase(http_requests_total{job=\"engine\",handler!~\"/metrics|/docs|/openapi.json\"}[$__range])) by (handler)",
+          "expr": "sum(increase(http_requests_total{job=\"engine\",handler=~\"/analyze-journal|/analyze-reconciliation|/orchestrate-fiscal-close|/predict-forecast|/predict-what-if|/copilot/rag|/extract-document\"}[$__range])) by (handler)",
           "legendFormat": "{{handler}}",
           "refId": "A"
         }

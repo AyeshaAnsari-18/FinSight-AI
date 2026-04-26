@@ -3,28 +3,57 @@ from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
 from prometheus_client import Counter, Gauge, Histogram
 from starlette.middleware.base import BaseHTTPMiddleware
+from collections import defaultdict
+from threading import Lock
 import random
 
 ai_tokens_total = Counter("ai_tokens_total", "Total AI tokens processed", ["endpoint"])
 ai_accuracy_score = Gauge("ai_accuracy_score", "Current AI Model Accuracy Confidence", ["endpoint"])
 active_agents_running = Gauge("active_agents_running", "Total live AI agents executing currently", ["endpoint"])
+active_agents_peak = Gauge("active_agents_peak", "Peak live AI agents observed since process start", ["endpoint"])
 rag_memory_overhead_mb = Gauge("rag_memory_overhead_mb", "Memory allocated for Vector/RAG usage (MB)")
 journal_analyses_total = Counter("journal_analyses_total", "Total Journal Extractions performed")
 reconciliation_analyses_total = Counter("reconciliation_analyses_total", "Total Policy/Reconciliations performed")
 forecasting_total = Counter("forecasting_total", "Total Forecasting requests")
 copilot_user_message_length = Histogram("copilot_user_message_length", "Length of Copilot prompts (chars)", buckets=[10, 50, 100, 250, 500, 1000])
 
+AI_ENDPOINTS = {
+    "/analyze-journal",
+    "/orchestrate-fiscal-close",
+    "/predict-forecast",
+    "/predict-what-if",
+    "/copilot/rag",
+    "/analyze-reconciliation",
+}
+
+_active_agents_lock = Lock()
+_active_agents_current = defaultdict(int)
+_active_agents_peak_seen = defaultdict(int)
+
 class AIMetricsMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         endpoint = request.url.path
-        if endpoint in ["/analyze-journal", "/orchestrate-fiscal-close", "/predict-forecast", "/predict-what-if", "/copilot/rag", "/analyze-reconciliation"]:
-            active_agents_running.labels(endpoint=endpoint).inc()
+        is_ai_endpoint = endpoint in AI_ENDPOINTS
+
+        if is_ai_endpoint:
+            with _active_agents_lock:
+                _active_agents_current[endpoint] += 1
+                current_running = _active_agents_current[endpoint]
+                active_agents_running.labels(endpoint=endpoint).set(current_running)
+                if current_running > _active_agents_peak_seen[endpoint]:
+                    _active_agents_peak_seen[endpoint] = current_running
+                    active_agents_peak.labels(endpoint=endpoint).set(current_running)
             rag_memory_overhead_mb.set(random.uniform(500.5, 1200.7))
-            
-        response = await call_next(request)
         
-        if endpoint in ["/analyze-journal", "/orchestrate-fiscal-close", "/predict-forecast", "/predict-what-if", "/copilot/rag", "/analyze-reconciliation"]:
-            active_agents_running.labels(endpoint=endpoint).dec()
+        try:
+            response = await call_next(request)
+        finally:
+            if is_ai_endpoint:
+                with _active_agents_lock:
+                    _active_agents_current[endpoint] = max(_active_agents_current[endpoint] - 1, 0)
+                    active_agents_running.labels(endpoint=endpoint).set(_active_agents_current[endpoint])
+
+        if is_ai_endpoint:
             rag_memory_overhead_mb.set(random.uniform(150.5, 250.7))
             
             ai_tokens_total.labels(endpoint=endpoint).inc(random.randint(150, 450))
