@@ -79,7 +79,6 @@ const App = () => {
           element={
             !isAuthenticated ? <Signup /> : (
                user?.role === 'ACCOUNTANT' ? <Navigate to="/accountant" /> :
-               user?.role === 'ADMIN' ? <Navigate to="/admin-test" /> :
                user?.role === 'MANAGER' ? <Navigate to="/manager" /> :
                user?.role === 'AUDITOR' ? <Navigate to="/auditor" /> :
                user?.role === 'COMPLIANCE' ? <Navigate to="/compliance" /> :
@@ -88,7 +87,7 @@ const App = () => {
           } 
         />
 
-        <Route path="/admin-test" element={<AdminTestPage />} />
+
 
         {/* LOGIN PAGE - Redirect to role dashboard if already logged in */}
         <Route 
@@ -97,7 +96,6 @@ const App = () => {
             !isAuthenticated ? <Login /> : (
                
                user?.role === 'ACCOUNTANT' ? <Navigate to="/accountant" /> :
-               user?.role === 'ADMIN' ? <Navigate to="/admin-test" /> :
                user?.role === 'MANAGER' ? <Navigate to="/manager" /> :
                user?.role === 'AUDITOR' ? <Navigate to="/auditor" /> :
                user?.role === 'COMPLIANCE' ? <Navigate to="/compliance" /> :
@@ -146,7 +144,7 @@ const App = () => {
         </Route>
 
       </Routes>
-      {isAuthenticated && user?.role !== 'ADMIN' ? <CopilotChat /> : null}
+      {isAuthenticated ? <CopilotChat /> : null}
       <Toaster position="top-right" />
     </Router>
   );

@@ -54,19 +54,16 @@ const ComplianceDashboard = () => {
         <div className="bg-white p-4 rounded shadow hover:shadow-md transition">
           <h2 className="font-semibold text-lg">Dept Clearance Panels</h2>
           <p className="text-2xl font-bold mt-2">{summary.pendingClearances} Pending Reviews</p>
-          <p className="text-sm text-gray-500 mt-1">Live from live assignments</p>
         </div>
 
         <div className="bg-white p-4 rounded shadow hover:shadow-md transition">
           <h2 className="font-semibold text-lg">Red Flags</h2>
           <p className="text-2xl font-bold mt-2 text-red-600">{summary.redFlags} Active Alerts</p>
-          <p className="text-sm text-gray-500 mt-1">Across all journals</p>
         </div>
 
         <div className="bg-white p-4 rounded shadow hover:shadow-md transition">
           <h2 className="font-semibold text-lg">Compliance Reports</h2>
           <p className="text-2xl font-bold mt-2">{summary.reports} Reports Generated</p>
-          <p className="text-sm text-gray-500 mt-1">This month</p>
         </div>
       </div>
 

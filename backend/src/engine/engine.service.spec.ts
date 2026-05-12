@@ -37,7 +37,9 @@ describe('EngineService', () => {
   });
 
   it('posts copilot RAG requests to the dedicated engine route', async () => {
-    (httpService.post as jest.Mock).mockReturnValue(of({ data: { reply: 'summary' } }));
+    (httpService.post as jest.Mock).mockReturnValue(
+      of({ data: { reply: 'summary' } }),
+    );
 
     await expect(
       service.runCopilotRag({
@@ -56,13 +58,15 @@ describe('EngineService', () => {
   });
 
   it('throws when OCR extraction is called without a file', async () => {
-    await expect(service.extractWithAI(undefined as never)).rejects.toBeInstanceOf(
-      InternalServerErrorException,
-    );
+    await expect(
+      service.extractWithAI(undefined as never),
+    ).rejects.toBeInstanceOf(InternalServerErrorException);
   });
 
   it('forwards OCR uploads as multipart form data', async () => {
-    (httpService.post as jest.Mock).mockReturnValue(of({ data: { text: 'invoice' } }));
+    (httpService.post as jest.Mock).mockReturnValue(
+      of({ data: { text: 'invoice' } }),
+    );
 
     const file = {
       buffer: Buffer.from('sample'),
@@ -70,7 +74,9 @@ describe('EngineService', () => {
       mimetype: 'application/pdf',
     };
 
-    await expect(service.extractWithAI(file as any)).resolves.toEqual({ text: 'invoice' });
+    await expect(service.extractWithAI(file as any)).resolves.toEqual({
+      text: 'invoice',
+    });
 
     expect(httpService.post).toHaveBeenCalledWith(
       'http://localhost:8000/extract-document',

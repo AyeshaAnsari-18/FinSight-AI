@@ -22,24 +22,34 @@ describe('JournalsController', () => {
   it('creates journal entries through the service', async () => {
     journalsService.create.mockResolvedValue({ id: 'journal-1' });
 
-    await expect(controller.create({ reference: 'REF-1' } as any)).resolves.toEqual({
+    await expect(
+      controller.create({ reference: 'REF-1' } as any),
+    ).resolves.toEqual({
       id: 'journal-1',
     });
   });
 
   it('returns review summaries for the auditor workflow', async () => {
-    journalsService.reviewSummary.mockResolvedValue({ summary: { totalEntries: 3 } });
+    journalsService.reviewSummary.mockResolvedValue({
+      summary: { totalEntries: 3 },
+    });
 
-    await expect(controller.reviewSummary({ scope: 'currentYear' } as any)).resolves.toEqual({
+    await expect(
+      controller.reviewSummary({ scope: 'currentYear' } as any),
+    ).resolves.toEqual({
       summary: { totalEntries: 3 },
     });
   });
 
   it('supports draft analysis and single-entry reanalysis', async () => {
     journalsService.analyzeDraft.mockResolvedValue({ riskScore: 51 });
-    journalsService.reanalyze.mockResolvedValue({ analysis: { riskScore: 88 } });
+    journalsService.reanalyze.mockResolvedValue({
+      analysis: { riskScore: 88 },
+    });
 
-    await expect(controller.analyze({ reference: 'REF-1' } as any)).resolves.toEqual({
+    await expect(
+      controller.analyze({ reference: 'REF-1' } as any),
+    ).resolves.toEqual({
       riskScore: 51,
     });
     await expect(controller.analyzeOne('journal-1')).resolves.toEqual({

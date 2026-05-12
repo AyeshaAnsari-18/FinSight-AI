@@ -36,7 +36,9 @@ describe('AuthService', () => {
       .mockResolvedValueOnce('access-token')
       .mockResolvedValueOnce('refresh-token');
 
-    await expect(service.getTokens('user-1', 'user@example.com', 'MANAGER')).resolves.toEqual({
+    await expect(
+      service.getTokens('user-1', 'user@example.com', 'MANAGER'),
+    ).resolves.toEqual({
       access_token: 'access-token',
       refresh_token: 'refresh-token',
     });
@@ -74,7 +76,11 @@ describe('AuthService', () => {
       } as any),
     ).resolves.toEqual({ access_token: 'at', refresh_token: 'rt' });
 
-    expect(service.getTokens).toHaveBeenCalledWith('user-1', 'user@example.com', 'AUDITOR');
+    expect(service.getTokens).toHaveBeenCalledWith(
+      'user-1',
+      'user@example.com',
+      'AUDITOR',
+    );
     expect(service.updateRtHash).toHaveBeenCalledWith('user-1', 'rt');
   });
 
@@ -86,9 +92,9 @@ describe('AuthService', () => {
       hashedRefreshToken: await argon2.hash('stored-token'),
     });
 
-    await expect(service.refreshTokens('user-1', 'different-token')).rejects.toBeInstanceOf(
-      ForbiddenException,
-    );
+    await expect(
+      service.refreshTokens('user-1', 'different-token'),
+    ).rejects.toBeInstanceOf(ForbiddenException);
   });
 
   it('clears the refresh token hash during logout', async () => {

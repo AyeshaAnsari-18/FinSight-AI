@@ -26,7 +26,9 @@ describe('AdminTestController', () => {
   it('allows admin login requests through without an auth guard dependency', async () => {
     adminTestService.login.mockResolvedValue({ access_token: 'token' });
 
-    await expect(controller.login({ username: 'admin', password: 'admin' })).resolves.toEqual({
+    await expect(
+      controller.login({ username: 'admin', password: 'admin' }),
+    ).resolves.toEqual({
       access_token: 'token',
     });
   });
@@ -39,7 +41,11 @@ describe('AdminTestController', () => {
     adminTestService.runTests.mockResolvedValue({ id: 'report-1' });
 
     await expect(
-      controller.runTests({ suiteIds: ['public-core'], includeAi: false }, 'ADMIN', 'admin@finsight.ai'),
+      controller.runTests(
+        { suiteIds: ['public-core'], includeAi: false },
+        'ADMIN',
+        'admin@finsight.ai',
+      ),
     ).resolves.toEqual({ id: 'report-1' });
     expect(adminTestService.runTests).toHaveBeenCalledWith(
       { suiteIds: ['public-core'], includeAi: false },
@@ -69,8 +75,6 @@ describe('AdminTestController', () => {
       'Content-Type',
       'application/pdf',
     );
-    expect(res.send).toHaveBeenCalledWith(
-      expect.any(Buffer),
-    );
+    expect(res.send).toHaveBeenCalledWith(expect.any(Buffer));
   });
 });

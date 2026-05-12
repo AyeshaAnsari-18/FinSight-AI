@@ -1,15 +1,18 @@
 import { useState } from "react";
 import { useJournals } from "../../hooks/useJournals";
+import { accountantApi } from "../../services/accountant.api";
 
 const JournalEntriesPage = () => {
-  
-  const { journals, loading, error } = useJournals();
+  const { journals, loading, error, mutate } = useJournals();
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [sortBy, setSortBy] = useState("date");
 
-  
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({ reference: "", description: "", debit: 0, credit: 0 });
+  const [submitting, setSubmitting] = useState(false);
+
   const statusColor = (status: string) => {
     switch (status.toUpperCase()) {
       case "POSTED":
@@ -25,11 +28,30 @@ const JournalEntriesPage = () => {
     }
   };
 
-  
-  if (loading) return <div className="p-10 text-center">Loading Financial Data...</div>;
+  const handleCreateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      await accountantApi.createJournal({
+        reference: formData.reference,
+        description: formData.description,
+        debit: Number(formData.debit),
+        credit: Number(formData.credit)
+      });
+      setShowModal(false);
+      setFormData({ reference: "", description: "", debit: 0, credit: 0 });
+      if (mutate) mutate();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to create journal entry.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading && !journals.length) return <div className="p-10 text-center">Loading Financial Data...</div>;
   if (error) return <div className="p-10 text-center text-red-500">{error}</div>;
 
-  
   let filteredData = journals.filter(
     (item) =>
       item.description.toLowerCase().includes(search.toLowerCase()) ||
@@ -37,17 +59,14 @@ const JournalEntriesPage = () => {
   );
 
   if (statusFilter !== "All") {
-    
     filteredData = filteredData.filter((i) => i.status.toUpperCase() === statusFilter.toUpperCase());
   }
 
-  
   if (sortBy === "date") {
     filteredData = filteredData.sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     );
   } else if (sortBy === "debit") {
-    
     filteredData = filteredData.sort((a, b) => Number(b.debit) - Number(a.debit));
   }
 
@@ -55,9 +74,11 @@ const JournalEntriesPage = () => {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Journal Entries</h1>
 
-      {/* Controls */}
       <div className="bg-white shadow rounded-lg p-4 flex flex-wrap gap-4 items-center">
-        <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        <button 
+          onClick={() => setShowModal(true)}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
           Add New Journal Entry
         </button>
 
@@ -90,7 +111,6 @@ const JournalEntriesPage = () => {
         </select>
       </div>
 
-      {/* Table */}
       <div className="bg-white shadow rounded-lg p-6 overflow-x-auto">
         <table className="min-w-full table-auto border-collapse">
           <thead>
@@ -106,14 +126,12 @@ const JournalEntriesPage = () => {
           <tbody>
             {filteredData.map((entry) => (
               <tr key={entry.id} className="hover:bg-gray-50">
-                {/* Display Reference instead of UUID for readability */}
                 <td className="border px-4 py-2 text-sm">{entry.reference || entry.id.substring(0,8)}</td>
                 <td className="border px-4 py-2 text-sm">
                   {new Date(entry.date).toLocaleDateString()}
                 </td>
                 <td className="border px-4 py-2">
                   {entry.description}
-                  {/* Visual indicator for AI Risk */}
                   {entry.riskScore && entry.riskScore > 50 && (
                      <span className="ml-2 text-xs text-red-500 font-bold">⚠️ Risk: {entry.riskScore}%</span>
                   )}
@@ -137,6 +155,70 @@ const JournalEntriesPage = () => {
           </tbody>
         </table>
       </div>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Create Journal Entry</h2>
+            <form onSubmit={handleCreateSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Reference</label>
+                <input 
+                  type="text" required 
+                  className="w-full border p-2 rounded mt-1" 
+                  value={formData.reference} 
+                  onChange={(e) => setFormData({...formData, reference: e.target.value})} 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Description</label>
+                <input 
+                  type="text" required 
+                  className="w-full border p-2 rounded mt-1" 
+                  value={formData.description} 
+                  onChange={(e) => setFormData({...formData, description: e.target.value})} 
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Debit ($)</label>
+                  <input 
+                    type="number" required min="0" step="0.01"
+                    className="w-full border p-2 rounded mt-1" 
+                    value={formData.debit} 
+                    onChange={(e) => setFormData({...formData, debit: parseFloat(e.target.value)})} 
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Credit ($)</label>
+                  <input 
+                    type="number" required min="0" step="0.01"
+                    className="w-full border p-2 rounded mt-1" 
+                    value={formData.credit} 
+                    onChange={(e) => setFormData({...formData, credit: parseFloat(e.target.value)})} 
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 mt-6">
+                <button 
+                  type="button" 
+                  onClick={() => setShowModal(false)} 
+                  className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded transition"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={submitting} 
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition disabled:opacity-50"
+                >
+                  {submitting ? "Saving..." : "Save Draft"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

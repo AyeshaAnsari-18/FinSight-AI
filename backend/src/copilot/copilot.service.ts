@@ -20,7 +20,10 @@ export class CopilotService {
         }));
       }
       if (role === 'AUDITOR' || role === 'MANAGER') {
-        const journals = await this.prisma.journalEntry.findMany({ take: 5, orderBy: { createdAt: 'desc' } });
+        const journals = await this.prisma.journalEntry.findMany({
+          take: 5,
+          orderBy: { createdAt: 'desc' },
+        });
         contextParts.journals = journals.map((journal) => ({
           id: journal.id,
           date: journal.date,
@@ -34,7 +37,10 @@ export class CopilotService {
         }));
       }
       if (role === 'ACCOUNTANT' || role === 'MANAGER') {
-        const tasks = await this.prisma.task.findMany({ take: 5, orderBy: { createdAt: 'desc' } });
+        const tasks = await this.prisma.task.findMany({
+          take: 5,
+          orderBy: { createdAt: 'desc' },
+        });
         contextParts.tasks = tasks.map((task) => ({
           id: task.id,
           title: decryptText(task.title) || '',
@@ -55,9 +61,9 @@ export class CopilotService {
     const history = await this.prisma.chatMessage.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
-      take: 10
+      take: 10,
     });
-    
+
     // Reverse to chronological
     const formattedHistory = history.reverse().map((m) => ({
       role: m.role,
@@ -69,41 +75,46 @@ export class CopilotService {
 
     // 3. Save User message
     await this.prisma.chatMessage.create({
-      data: { userId, role: 'user', content: encryptText(message) || '' }
+      data: { userId, role: 'user', content: encryptText(message) || '' },
     });
 
     // 4. Call engine RAG Endpoint
-    let reply = "";
+    let reply = '';
     try {
-      const response = await axios.post(`${process.env.ENGINE_URL || 'http://localhost:8000'}/copilot/rag`, {
-        role,
-        message,
-        context: context || "No dynamic context.",
-        history: formattedHistory
-      });
+      const response = await axios.post(
+        `${process.env.ENGINE_URL || 'http://localhost:8000'}/copilot/rag`,
+        {
+          role,
+          message,
+          context: context || 'No dynamic context.',
+          history: formattedHistory,
+        },
+      );
       reply = response.data.reply;
-    } catch(err) {
-      reply = "Sorry, the AI engine is currently unreachable.";
+    } catch (err) {
+      reply = 'Sorry, the AI engine is currently unreachable.';
       console.error(err);
     }
 
     // 5. Save AI reply
     await this.prisma.chatMessage.create({
-       data: { userId, role: 'assistant', content: encryptText(reply) || '' }
+      data: { userId, role: 'assistant', content: encryptText(reply) || '' },
     });
 
     return { reply };
   }
 
   async getChatHistory(userId: string) {
-     return this.prisma.chatMessage.findMany({
+    return this.prisma.chatMessage
+      .findMany({
         where: { userId },
-        orderBy: { createdAt: 'asc' } // full history for frontend, frontend will manage pagination
-     }).then((messages) =>
-       messages.map((message) => ({
-         ...message,
-         content: decryptText(message.content) || '',
-       })),
-     );
+        orderBy: { createdAt: 'asc' }, // full history for frontend, frontend will manage pagination
+      })
+      .then((messages) =>
+        messages.map((message) => ({
+          ...message,
+          content: decryptText(message.content) || '',
+        })),
+      );
   }
 }

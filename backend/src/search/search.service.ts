@@ -35,7 +35,12 @@ export class SearchService {
           flagReason: decryptText(journal.flagReason) || null,
         }))
         .filter((journal) =>
-          matches(journal.id, journal.description, journal.reference, journal.flagReason),
+          matches(
+            journal.id,
+            journal.description,
+            journal.reference,
+            journal.flagReason,
+          ),
         )
         .slice(0, 10),
       tasks: tasks
@@ -63,7 +68,13 @@ export class SearchService {
           summary: decryptText(document.summary) || null,
         }))
         .filter((document) =>
-          matches(document.id, document.fileName, document.fileType, document.extractedText, document.summary),
+          matches(
+            document.id,
+            document.fileName,
+            document.fileType,
+            document.extractedText,
+            document.summary,
+          ),
         )
         .slice(0, 10),
     };

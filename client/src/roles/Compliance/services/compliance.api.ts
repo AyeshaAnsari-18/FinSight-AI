@@ -10,8 +10,18 @@ export const getComplianceControls = async () => {
   return response.data;
 };
 
+export const createControl = async (payload: any) => {
+  const response = await api.post('/compliance', payload);
+  return response.data;
+};
+
 export const getCompliancePolicies = async () => {
   const response = await api.get('/compliance/policies');
+  return response.data;
+};
+
+export const createPolicy = async (payload: any) => {
+  const response = await api.post('/compliance/policies', payload);
   return response.data;
 };
 

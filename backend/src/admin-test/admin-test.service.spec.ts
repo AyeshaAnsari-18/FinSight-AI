@@ -25,7 +25,11 @@ describe('AdminTestService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new AdminTestService(prisma as any, authService as any, configService as any);
+    service = new AdminTestService(
+      prisma as any,
+      authService as any,
+      configService as any,
+    );
   });
 
   it('rejects non-admin usernames before reading the database', async () => {
@@ -49,7 +53,9 @@ describe('AdminTestService', () => {
     });
     authService.updateRtHash.mockResolvedValue(undefined);
 
-    await expect(service.login({ username: 'admin', password: 'admin' })).resolves.toEqual({
+    await expect(
+      service.login({ username: 'admin', password: 'admin' }),
+    ).resolves.toEqual({
       access_token: 'at',
       refresh_token: 'rt',
       user: {
@@ -63,7 +69,9 @@ describe('AdminTestService', () => {
 
   it('publishes suites that include the new journal and reconciliation analyze flows', () => {
     const catalog = service.getCatalog();
-    const accountantSuite = catalog.find((suite) => suite.id === 'accountant-ops');
+    const accountantSuite = catalog.find(
+      (suite) => suite.id === 'accountant-ops',
+    );
     const managerSuite = catalog.find((suite) => suite.id === 'manager-ai');
 
     expect(accountantSuite?.cases).toEqual(

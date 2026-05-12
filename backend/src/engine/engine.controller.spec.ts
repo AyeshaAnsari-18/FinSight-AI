@@ -21,16 +21,22 @@ describe('EngineController', () => {
   it('delegates journal analysis requests', async () => {
     engineService.analyzeJournal.mockResolvedValue({ risk_score: 22 });
 
-    await expect(controller.analyzeJournal({ reference: 'REF-1' })).resolves.toEqual({
+    await expect(
+      controller.analyzeJournal({ reference: 'REF-1' }),
+    ).resolves.toEqual({
       risk_score: 22,
     });
-    expect(engineService.analyzeJournal).toHaveBeenCalledWith({ reference: 'REF-1' });
+    expect(engineService.analyzeJournal).toHaveBeenCalledWith({
+      reference: 'REF-1',
+    });
   });
 
   it('delegates reconciliation analysis requests', async () => {
     engineService.analyzeReconciliation.mockResolvedValue({ matched: false });
 
-    await expect(controller.analyzeReconciliation({ bank_balance: 1 })).resolves.toEqual({
+    await expect(
+      controller.analyzeReconciliation({ bank_balance: 1 }),
+    ).resolves.toEqual({
       matched: false,
     });
   });
@@ -39,9 +45,11 @@ describe('EngineController', () => {
     const file = { originalname: 'invoice.pdf' };
     engineService.extractWithAI.mockResolvedValue({ summary: 'done' });
 
-    await expect(controller.uploadDocumentForOCR(file as any)).resolves.toEqual({
-      summary: 'done',
-    });
+    await expect(controller.uploadDocumentForOCR(file as any)).resolves.toEqual(
+      {
+        summary: 'done',
+      },
+    );
     expect(engineService.extractWithAI).toHaveBeenCalledWith(file);
   });
 });

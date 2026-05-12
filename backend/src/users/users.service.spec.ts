@@ -38,7 +38,9 @@ describe('UsersService', () => {
   it('throws when the requested user does not exist', async () => {
     prisma.user.findUnique.mockResolvedValue(null);
 
-    await expect(service.findOne('missing-user')).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.findOne('missing-user')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 
   it('hashes a new password during update and omits secrets from the response', async () => {

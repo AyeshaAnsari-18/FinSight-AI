@@ -4,7 +4,7 @@ import { decryptText } from '../common/security/data-protection';
 
 @Injectable()
 export class AuditorService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async getDashboardMetrics() {
     const journalCounts = await this.prisma.journalEntry.groupBy({
@@ -12,19 +12,21 @@ export class AuditorService {
       _count: { status: true },
     });
 
-    const flaggedJournals = journalCounts.find(j => j.status === 'FLAGGED')?._count.status || 0;
-    const pendingJournals = journalCounts.find(j => j.status === 'DRAFT')?._count.status || 0;
+    const flaggedJournals =
+      journalCounts.find((j) => j.status === 'FLAGGED')?._count.status || 0;
+    const pendingJournals =
+      journalCounts.find((j) => j.status === 'DRAFT')?._count.status || 0;
 
     const risksCount = await this.prisma.riskControl.count({
-      where: { status: { not: 'Compliant' } }
+      where: { status: { not: 'Compliant' } },
     });
 
     const pendingTasks = await this.prisma.task.count({
-      where: { status: { not: 'DONE' } }
+      where: { status: { not: 'DONE' } },
     });
 
     const allTasks = await this.prisma.task.findMany({
-      where: { status: { not: 'DONE' } }
+      where: { status: { not: 'DONE' } },
     });
     const journalReviewCount = allTasks.filter((task) => {
       const title = decryptText(task.title)?.toLowerCase() || '';
@@ -39,13 +41,19 @@ export class AuditorService {
       where: { status: 'FLAGGED' },
       orderBy: { date: 'desc' },
       take: 3,
-      select: { flagReason: true, description: true }
+      select: { flagReason: true, description: true },
     });
 
     const alerts = recentAlertsObj.map(
-      (a) => `${decryptText(a.description) || ''}: ${decryptText(a.flagReason) || ''}`,
+      (a) =>
+        `${decryptText(a.description) || ''}: ${decryptText(a.flagReason) || ''}`,
     );
-    if (alerts.length === 0) alerts.push("System automatically checks for unusual transaction patterns.", "Unauthorized journal modification detected", "High variance in vendor reconciliation");
+    if (alerts.length === 0)
+      alerts.push(
+        'System automatically checks for unusual transaction patterns.',
+        'Unauthorized journal modification detected',
+        'High variance in vendor reconciliation',
+      );
 
     return {
       pendingAuditReviews: pendingJournals + reconReviewCount,
@@ -56,7 +64,7 @@ export class AuditorService {
         journalReview: journalReviewCount || pendingJournals || 5,
         reconciliationReview: reconReviewCount || 3,
       },
-      alerts
+      alerts,
     };
   }
 
@@ -66,14 +74,16 @@ export class AuditorService {
     });
 
     const groupedRoles = await this.prisma.user.groupBy({ by: ['role'] });
-    let dbDepartments = groupedRoles.map(g => g.role.charAt(0) + g.role.slice(1).toLowerCase() + ' Division');
+    let dbDepartments = groupedRoles.map(
+      (g) => g.role.charAt(0) + g.role.slice(1).toLowerCase() + ' Division',
+    );
     if (dbDepartments.length === 0) dbDepartments = ['Administration'];
 
     const nativeAuditors = await this.prisma.user.findMany({
       where: { role: 'AUDITOR' },
-      select: { name: true, email: true }
+      select: { name: true, email: true },
     });
-    let dbAuditors = nativeAuditors.map(u => u.name || u.email);
+    let dbAuditors = nativeAuditors.map((u) => u.name || u.email);
     if (dbAuditors.length === 0) dbAuditors = ['System Auditor'];
 
     return risks.map((risk, index) => {
@@ -87,7 +97,9 @@ export class AuditorService {
         policy: decryptText(risk.riskName) || '',
         auditor: dbAuditors[index % dbAuditors.length],
         department: dbDepartments[index % dbDepartments.length],
-        lastChecked: risk.lastTested ? risk.lastTested.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        lastChecked: risk.lastTested
+          ? risk.lastTested.toISOString().split('T')[0]
+          : new Date().toISOString().split('T')[0],
         status: mappedStatus,
       };
     });
@@ -95,17 +107,22 @@ export class AuditorService {
 
   async getDepartmentOverview() {
     const groupedRoles = await this.prisma.user.groupBy({ by: ['role'] });
-    let dbDepartments = groupedRoles.map(g => g.role.charAt(0) + g.role.slice(1).toLowerCase() + ' Division');
+    let dbDepartments = groupedRoles.map(
+      (g) => g.role.charAt(0) + g.role.slice(1).toLowerCase() + ' Division',
+    );
     if (dbDepartments.length === 0) dbDepartments = ['Administration'];
 
     const nativeAuditors = await this.prisma.user.findMany({
       where: { role: 'AUDITOR' },
-      select: { name: true, email: true }
+      select: { name: true, email: true },
     });
-    let dbAuditors = nativeAuditors.map(u => u.name || u.email);
+    let dbAuditors = nativeAuditors.map((u) => u.name || u.email);
     if (dbAuditors.length === 0) dbAuditors = ['System Auditor'];
 
-    const risks = await this.prisma.riskControl.findMany({ orderBy: { id: 'desc' }, take: dbDepartments.length });
+    const risks = await this.prisma.riskControl.findMany({
+      orderBy: { id: 'desc' },
+      take: dbDepartments.length,
+    });
 
     return dbDepartments.map((dept, index) => {
       const dbRisk = risks[index];
@@ -116,8 +133,12 @@ export class AuditorService {
         id: index + 1,
         department: dept,
         auditor: dbAuditors[index % dbAuditors.length],
-        lastAudit: dbRisk?.lastTested ? dbRisk.lastTested.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-        findings: decryptText(dbRisk?.controlDesc || '') || 'No major findings reported.',
+        lastAudit: dbRisk?.lastTested
+          ? dbRisk.lastTested.toISOString().split('T')[0]
+          : new Date().toISOString().split('T')[0],
+        findings:
+          decryptText(dbRisk?.controlDesc || '') ||
+          'No major findings reported.',
         status: rowStatus,
       };
     });

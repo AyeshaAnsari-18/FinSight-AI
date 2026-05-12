@@ -9,7 +9,7 @@ export class DashboardService {
 
   
   async getAccountantMetrics(userId: string) {
-    const [journalCounts, myTasks, alerts] = await Promise.all([
+    const [journalCounts, myTasks, alerts, reconciliations] = await Promise.all([
       
       this.prisma.journalEntry.groupBy({
         by: ['status'],
@@ -31,6 +31,8 @@ export class DashboardService {
         orderBy: { date: 'desc' },
         select: { id: true, description: true, riskScore: true, flagReason: true }
       }),
+
+      this.prisma.reconciliation.count({ where: { status: 'PENDING' } }),
     ]);
 
     
@@ -53,8 +55,8 @@ export class DashboardService {
         taxTasks: taxTasks,         
         pendingJournals: pendingJournals,
         validationFailures: flaggedJournals,
-        bankReconciliations: 3, 
-        vendorReconciliations: 5, 
+        bankReconciliations: reconciliations, 
+        vendorReconciliations: 0, 
       },
       alerts: alerts.map(alert => ({
         id: alert.id,

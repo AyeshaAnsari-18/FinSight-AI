@@ -25,6 +25,6 @@ export class CreateTaskDto {
   priority?: Priority;
 
   @IsString()
-  @IsNotEmpty()
-  assignedToId!: string;
+  @IsOptional()
+  assignedToId?: string;
 }

@@ -1044,6 +1044,48 @@ export class AdminTestService {
             },
           ),
           this.case(
+            'compliance-update',
+            'audit-compliance',
+            'Audit & Compliance',
+            'PATCH',
+            '/compliance/controls/:id',
+            'COMPLIANCE',
+            async (http, context) =>
+              http.patch(
+                `/compliance/controls/${context.artifacts.complianceId}`,
+                { status: 'Compliant' },
+                {
+                  headers: this.authHeaders(context, 'COMPLIANCE'),
+                },
+              ),
+          ),
+          this.case(
+            'compliance-evidence-upload',
+            'audit-compliance',
+            'Audit & Compliance',
+            'POST',
+            '/compliance/controls/:id/evidence',
+            'COMPLIANCE',
+            async (http, context) => {
+              const form = new FormData();
+              form.append('file', Buffer.from('test pdf content'), {
+                filename: 'test-evidence.pdf',
+                contentType: 'application/pdf',
+              });
+
+              return http.post(
+                `/compliance/controls/${context.artifacts.complianceId}/evidence`,
+                form,
+                {
+                  headers: {
+                    ...this.authHeaders(context, 'COMPLIANCE'),
+                    ...form.getHeaders(),
+                  },
+                },
+              );
+            },
+          ),
+          this.case(
             'compliance-issues',
             'audit-compliance',
             'Audit & Compliance',

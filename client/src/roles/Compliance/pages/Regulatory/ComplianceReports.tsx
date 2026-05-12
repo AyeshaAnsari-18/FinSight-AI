@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getCompliancePolicies } from "../../services/compliance.api";
+import api from "../../../../lib/api";
 
 const ComplianceReports = () => {
   const [reports, setReports] = useState<any[]>([]);
@@ -20,6 +21,21 @@ const ComplianceReports = () => {
       setLoading(false);
     });
   }, []);
+
+  const handleDownload = async (id: string, filename: string) => {
+    try {
+      const response = await api.get(`/compliance/reports/${id}/download`, { responseType: 'blob' });
+      const blob = new Blob([response.data], { type: response.headers['content-type'] });
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Download failed", error);
+    }
+  };
 
   return (
     <div className="p-6">
@@ -48,7 +64,11 @@ const ComplianceReports = () => {
                   <td className="p-2 border">{row.department}</td>
                   <td className="p-2 border">{row.generator}</td>
                   <td className="p-2 border">{row.generatedDate}</td>
-                  <td className="p-2 border hover:underline cursor-pointer text-blue-600">Download .PDF</td>
+                  <td className="p-2 border">
+                    <span onClick={() => handleDownload(row.id, `${row.id}_report.pdf`)} className="hover:underline cursor-pointer text-blue-600">
+                      Download .PDF
+                    </span>
+                  </td>
                 </tr>
               )) : (
                  <tr><td colSpan={6} className="p-8 text-center text-gray-500">No active reports produced in system.</td></tr>

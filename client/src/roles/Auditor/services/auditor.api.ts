@@ -25,6 +25,11 @@ export const getTasks = async () => {
   return response.data;
 };
 
+export const createTask = async (payload: any) => {
+  const response = await api.post('/tasks', payload);
+  return response.data;
+};
+
 export const getJournals = async () => {
   const response = await api.get('/journals');
   return response.data;

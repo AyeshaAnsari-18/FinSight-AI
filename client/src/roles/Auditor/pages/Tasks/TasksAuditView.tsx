@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { CheckCircle } from "lucide-react";
-import { getTasks } from "../../services/auditor.api";
+import { getTasks, createTask } from "../../services/auditor.api";
 
 const TaskAuditView = () => {
   const [search, setSearch] = useState("");
@@ -8,7 +8,12 @@ const TaskAuditView = () => {
   const [tasksData, setTasksData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({ title: "", description: "", priority: "MEDIUM", dueDate: "", assignedToId: "" });
+  const [submitting, setSubmitting] = useState(false);
+
+  const loadTasks = () => {
+    setLoading(true);
     getTasks()
       .then((res) => {
         const mappedData = res.map((t: any) => ({
@@ -26,7 +31,33 @@ const TaskAuditView = () => {
         console.error(err);
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    loadTasks();
   }, []);
+
+  const handleCreateTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      await createTask({
+        title: formData.title,
+        description: formData.description,
+        priority: formData.priority,
+        dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : undefined,
+        assignedToId: formData.assignedToId || undefined
+      });
+      setShowModal(false);
+      setFormData({ title: "", description: "", priority: "MEDIUM", dueDate: "", assignedToId: "" });
+      loadTasks();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to assign task.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const filteredData = tasksData.filter((item) => {
     const matchesSearch =
@@ -40,9 +71,17 @@ const TaskAuditView = () => {
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <CheckCircle className="w-6 h-6 text-[#0A2342]" />
-        <h1 className="text-2xl font-bold text-[#0A2342]">Task Audit View</h1>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <CheckCircle className="w-6 h-6 text-[#0A2342]" />
+          <h1 className="text-2xl font-bold text-[#0A2342]">Task Audit View</h1>
+        </div>
+        <button 
+          onClick={() => setShowModal(true)}
+          className="bg-[#0A2342] text-white px-4 py-2 rounded shadow hover:bg-[#113155] transition"
+        >
+          Assign New Task
+        </button>
       </div>
 
       {/* Filters */}
@@ -67,7 +106,7 @@ const TaskAuditView = () => {
 
       {/* Table */}
       <div className="bg-white shadow rounded overflow-x-auto">
-        {loading ? (
+        {loading && tasksData.length === 0 ? (
           <div className="p-12 flex justify-center text-gray-400">Loading automated task view...</div>
         ) : (
           <table className="min-w-full table-auto">
@@ -119,6 +158,84 @@ const TaskAuditView = () => {
         <button className="px-3 py-1 border-t border-b bg-white hover:bg-gray-100">1</button>
         <button className="px-3 py-1 border rounded-r bg-white hover:bg-gray-100">Next</button>
       </div>
+
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4 text-[#0A2342]">Assign New Task</h2>
+            <form onSubmit={handleCreateTask} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Task Title</label>
+                <input 
+                  type="text" required 
+                  className="w-full border p-2 rounded mt-1" 
+                  value={formData.title} 
+                  onChange={(e) => setFormData({...formData, title: e.target.value})} 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Description (Optional)</label>
+                <input 
+                  type="text" 
+                  className="w-full border p-2 rounded mt-1" 
+                  value={formData.description} 
+                  onChange={(e) => setFormData({...formData, description: e.target.value})} 
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Priority</label>
+                  <select 
+                    className="w-full border p-2 rounded mt-1" 
+                    value={formData.priority} 
+                    onChange={(e) => setFormData({...formData, priority: e.target.value})}
+                  >
+                    <option value="LOW">Low</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="HIGH">High</option>
+                    <option value="URGENT">Urgent</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Due Date</label>
+                  <input 
+                    type="date" required
+                    className="w-full border p-2 rounded mt-1" 
+                    value={formData.dueDate} 
+                    onChange={(e) => setFormData({...formData, dueDate: e.target.value})} 
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Assign To (User ID / Email)</label>
+                <input 
+                  type="text" placeholder="e.g. manager@finsight.com"
+                  className="w-full border p-2 rounded mt-1" 
+                  value={formData.assignedToId} 
+                  onChange={(e) => setFormData({...formData, assignedToId: e.target.value})} 
+                />
+              </div>
+              <div className="flex justify-end gap-2 mt-6">
+                <button 
+                  type="button" 
+                  onClick={() => setShowModal(false)} 
+                  className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded transition"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={submitting} 
+                  className="px-4 py-2 bg-[#0A2342] text-white rounded hover:bg-[#113155] transition disabled:opacity-50"
+                >
+                  {submitting ? "Assigning..." : "Assign Task"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

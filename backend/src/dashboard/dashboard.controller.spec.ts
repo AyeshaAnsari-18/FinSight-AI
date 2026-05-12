@@ -13,11 +13,15 @@ describe('DashboardController', () => {
   });
 
   it('returns accountant metrics for the current user', async () => {
-    dashboardService.getAccountantMetrics.mockResolvedValue({ kpi: { totalPendingTasks: 3 } });
+    dashboardService.getAccountantMetrics.mockResolvedValue({
+      kpi: { totalPendingTasks: 3 },
+    });
 
     await expect(controller.getAccountantStats('user-1')).resolves.toEqual({
       kpi: { totalPendingTasks: 3 },
     });
-    expect(dashboardService.getAccountantMetrics).toHaveBeenCalledWith('user-1');
+    expect(dashboardService.getAccountantMetrics).toHaveBeenCalledWith(
+      'user-1',
+    );
   });
 });

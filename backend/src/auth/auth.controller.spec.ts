@@ -23,7 +23,10 @@ describe('AuthController', () => {
       role: 'ACCOUNTANT' as const,
     };
 
-    authService.signupLocal.mockResolvedValue({ access_token: 'at', refresh_token: 'rt' });
+    authService.signupLocal.mockResolvedValue({
+      access_token: 'at',
+      refresh_token: 'rt',
+    });
 
     await expect(controller.signup(dto)).resolves.toEqual({
       access_token: 'at',
@@ -38,7 +41,10 @@ describe('AuthController', () => {
       password: 'password123',
     };
 
-    authService.signinLocal.mockResolvedValue({ access_token: 'at', refresh_token: 'rt' });
+    authService.signinLocal.mockResolvedValue({
+      access_token: 'at',
+      refresh_token: 'rt',
+    });
 
     await expect(controller.signin(dto as any)).resolves.toEqual({
       access_token: 'at',
@@ -55,12 +61,20 @@ describe('AuthController', () => {
   });
 
   it('delegates refresh requests with the extracted refresh token', async () => {
-    authService.refreshTokens.mockResolvedValue({ access_token: 'next-at', refresh_token: 'next-rt' });
-
-    await expect(controller.refreshTokens('user-1', 'refresh-token')).resolves.toEqual({
+    authService.refreshTokens.mockResolvedValue({
       access_token: 'next-at',
       refresh_token: 'next-rt',
     });
-    expect(authService.refreshTokens).toHaveBeenCalledWith('user-1', 'refresh-token');
+
+    await expect(
+      controller.refreshTokens('user-1', 'refresh-token'),
+    ).resolves.toEqual({
+      access_token: 'next-at',
+      refresh_token: 'next-rt',
+    });
+    expect(authService.refreshTokens).toHaveBeenCalledWith(
+      'user-1',
+      'refresh-token',
+    );
   });
 });

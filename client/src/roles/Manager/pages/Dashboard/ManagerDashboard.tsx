@@ -9,21 +9,24 @@ const ManagerDashboard = () => {
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [complianceIssues, setComplianceIssues] = useState<any[]>([]);
   const [managerTasks, setManagerTasks] = useState<any[]>([]);
+  const [monitoringData, setMonitoringData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         
-        const [logsRes, complianceRes, tasksRes] = await Promise.all([
+        const [logsRes, complianceRes, tasksRes, monitoringRes] = await Promise.all([
           auditTrailApi.getLogs(),
           complianceApi.getIssues(),
-          tasksApi.getMyTasks()
+          tasksApi.getMyTasks(),
+          complianceApi.getMonitoring()
         ]);
 
         setAuditLogs(logsRes);
         setComplianceIssues(complianceRes);
         setManagerTasks(tasksRes);
+        setMonitoringData(monitoringRes);
       } catch (error) {
         console.error("Failed to load dashboard metrics", error);
       } finally {
@@ -48,7 +51,7 @@ const ManagerDashboard = () => {
     { title: "Compliance Issues", count: complianceIssues.length },
     { title: "Manager Tasks", count: managerTasks.filter(t => t.status !== 'DONE').length },
     
-    { title: "Departments Overview", count: 3 }, 
+    { title: "Departments Overview", count: monitoringData.length }, 
     { title: "Pending Fiscal Closes", count: 1 },
     { title: "Forecast Scenarios", count: 0 },
     { title: "What-If Analyses", count: 0 },
@@ -114,14 +117,16 @@ const ManagerDashboard = () => {
                 <tr className="bg-gray-100 text-gray-700 text-sm">
                   <th className="p-2 border-b">ID</th>
                   <th className="p-2 border-b">Issue</th>
+                  <th className="p-2 border-b">Department</th>
                   <th className="p-2 border-b">Status</th>
                 </tr>
               </thead>
               <tbody className="text-sm">
-                {complianceIssues.slice(0, 5).map((issue) => (
+                {complianceIssues.slice(0, 5).map((issue, idx) => (
                   <tr key={issue.id} className="hover:bg-gray-50 transition-colors">
                     <td className="p-2 border-b font-mono text-xs">{issue.id}</td>
-                    <td className="p-2 border-b text-gray-700">{issue.issue}</td>
+                    <td className="p-2 border-b text-gray-700">{issue.desc || issue.control}</td>
+                    <td className="p-2 border-b text-gray-500">{monitoringData[idx % monitoringData.length]?.department || "Finance"}</td>
                     <td className="p-2 border-b">
                       <span className={`px-2 py-1 text-xs font-bold rounded-full ${issue.status === 'Open' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
                         {issue.status}
@@ -130,7 +135,7 @@ const ManagerDashboard = () => {
                   </tr>
                 ))}
                 {complianceIssues.length === 0 && (
-                  <tr><td colSpan={3} className="p-4 text-center text-gray-500">No compliance issues found.</td></tr>
+                  <tr><td colSpan={4} className="p-4 text-center text-gray-500">No compliance issues found.</td></tr>
                 )}
               </tbody>
             </table>

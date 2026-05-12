@@ -1,10 +1,23 @@
 import { ReconStatus } from '@prisma/client';
-import { IsDateString, IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
 
 export class ReconcileReviewDto {
   @IsOptional()
   @IsString()
-  scope?: 'all' | 'selected' | 'dateRange' | 'currentMonth' | 'currentQuarter' | 'currentYear';
+  scope?:
+    | 'all'
+    | 'selected'
+    | 'dateRange'
+    | 'currentMonth'
+    | 'currentQuarter'
+    | 'currentYear';
 
   @IsOptional()
   @IsString()

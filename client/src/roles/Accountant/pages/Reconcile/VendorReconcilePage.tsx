@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import api from "../../../../lib/api";
+import { reconcileApi } from "../../services/reconcile.api";
 import { Loader2 } from "lucide-react";
 
 interface ReconcileRecord {
@@ -17,20 +17,47 @@ const VendorReconcilePage = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
 
+  const [vendorBalance, setVendorBalance] = useState("");
+  const [ledgerBalance, setLedgerBalance] = useState("");
+  const [notes, setNotes] = useState("");
+  const [runningAI, setRunningAI] = useState(false);
+
+  const fetchReconciliations = async () => {
+    try {
+      const response = await reconcileApi.getReconciliations();
+      setData(response);
+    } catch (error) {
+      console.error("Failed to fetch reconciliations", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchReconciliations = async () => {
-      try {
-        // Hitting your NestJS ReconcileController
-        const response = await api.get('/reconcile');
-        setData(response.data);
-      } catch (error) {
-        console.error("Failed to fetch reconciliations", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchReconciliations();
   }, []);
+
+  const handleRunAI = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRunningAI(true);
+    try {
+      await reconcileApi.runReconciliation({
+        month: new Date().toISOString(),
+        bankBalance: Number(vendorBalance),
+        ledgerBalance: Number(ledgerBalance),
+        notes: notes
+      });
+      
+      setVendorBalance("");
+      setLedgerBalance("");
+      setNotes("");
+      await fetchReconciliations();
+    } catch (error) {
+      alert("AI Analysis failed. Check console.");
+    } finally {
+      setRunningAI(false);
+    }
+  };
 
   const statusColor = (status: string) => {
     if (status === "MATCHED") return "bg-green-100 text-green-700";
@@ -47,7 +74,27 @@ const VendorReconcilePage = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Vendor/Ledger Reconciliation</h1>
+      <h1 className="text-2xl font-bold">Vendor/Ledger Reconciliation (AI Assisted)</h1>
+      
+      {/* AI Trigger Form */}
+      <form onSubmit={handleRunAI} className="bg-white p-6 shadow rounded-lg flex flex-wrap gap-4 items-end">
+        <div>
+          <label className="block text-sm text-gray-600">Vendor Balance ($)</label>
+          <input type="number" required value={vendorBalance} onChange={e => setVendorBalance(e.target.value)} className="border p-2 rounded w-40" />
+        </div>
+        <div>
+          <label className="block text-sm text-gray-600">Ledger Balance ($)</label>
+          <input type="number" required value={ledgerBalance} onChange={e => setLedgerBalance(e.target.value)} className="border p-2 rounded w-40" />
+        </div>
+        <div className="flex-1">
+          <label className="block text-sm text-gray-600">Context Notes (for AI)</label>
+          <input type="text" value={notes} onChange={e => setNotes(e.target.value)} placeholder="e.g. Missing vendor payment receipt..." className="border p-2 rounded w-full" />
+        </div>
+        <button type="submit" disabled={runningAI} className="bg-[#6a0dad] text-white px-6 py-2 rounded hover:bg-[#580aaf] transition disabled:opacity-50">
+          {runningAI ? "AI Analyzing..." : "Run AI Reconciliation"}
+        </button>
+      </form>
+
       <div className="bg-white shadow rounded-lg p-4 flex gap-4 flex-wrap">
         <input
           type="text"

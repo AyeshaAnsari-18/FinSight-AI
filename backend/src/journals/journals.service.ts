@@ -1,5 +1,9 @@
 import { JournalEntry, JournalStatus, Prisma } from '@prisma/client';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { EngineService } from '../engine/engine.service';
 import { decryptText, encryptText } from '../common/security/data-protection';
@@ -79,7 +83,9 @@ export class JournalsService {
       data: {
         date: dto.date ? new Date(dto.date) : undefined,
         description:
-          dto.description === undefined ? undefined : encryptText(dto.description),
+          dto.description === undefined
+            ? undefined
+            : encryptText(dto.description),
         reference:
           dto.reference === undefined ? undefined : encryptText(dto.reference),
         debit: dto.debit,
@@ -138,18 +144,26 @@ export class JournalsService {
       analyses.push(await this.analyzeAndPersist(entry));
     }
 
-    const totalDebit = analyses.reduce((sum, item) => sum + item.journal.debit, 0);
-    const totalCredit = analyses.reduce((sum, item) => sum + item.journal.credit, 0);
+    const totalDebit = analyses.reduce(
+      (sum, item) => sum + item.journal.debit,
+      0,
+    );
+    const totalCredit = analyses.reduce(
+      (sum, item) => sum + item.journal.credit,
+      0,
+    );
     const flaggedEntries = analyses.filter(
       (item) =>
-        item.analysis.riskScore >= HIGH_RISK_THRESHOLD || item.analysis.flags.length > 0,
+        item.analysis.riskScore >= HIGH_RISK_THRESHOLD ||
+        item.analysis.flags.length > 0,
     ).length;
     const highestRiskScore = analyses.reduce(
       (max, item) => Math.max(max, item.analysis.riskScore),
       0,
     );
     const averageRiskScore =
-      analyses.reduce((sum, item) => sum + item.analysis.riskScore, 0) / analyses.length;
+      analyses.reduce((sum, item) => sum + item.analysis.riskScore, 0) /
+      analyses.length;
     const topFlags = this.buildTopFlags(
       analyses.flatMap((item) => item.analysis.flags),
     );
@@ -209,7 +223,10 @@ export class JournalsService {
 
   private normalizeAnalysis(raw: any): JournalAnalysisResult {
     const flags = Array.isArray(raw?.flags)
-      ? raw.flags.filter((flag: unknown): flag is string => typeof flag === 'string' && flag.trim().length > 0)
+      ? raw.flags.filter(
+          (flag: unknown): flag is string =>
+            typeof flag === 'string' && flag.trim().length > 0,
+        )
       : [];
 
     return {
@@ -222,7 +239,9 @@ export class JournalsService {
     };
   }
 
-  private async analyzeAndPersist(journal: JournalEntry): Promise<JournalReviewResult> {
+  private async analyzeAndPersist(
+    journal: JournalEntry,
+  ): Promise<JournalReviewResult> {
     const plainJournal = this.serializeJournal(journal);
     const analysis = this.normalizeAnalysis(
       await this.engineService.analyzeJournal({
@@ -255,7 +274,9 @@ export class JournalsService {
 
   private async getEntriesForReview(dto: JournalReviewDto) {
     if (dto.scope === 'selected' && !dto.journalId) {
-      throw new BadRequestException('Select a journal entry before running a focused analysis.');
+      throw new BadRequestException(
+        'Select a journal entry before running a focused analysis.',
+      );
     }
 
     const appliedRange = this.resolveDateRange(dto);
@@ -282,7 +303,9 @@ export class JournalsService {
     }
 
     const requestedLimit = Number(dto.limit ?? 12);
-    const take = dto.journalId ? undefined : Math.min(requestedLimit, MAX_REVIEW_BATCH);
+    const take = dto.journalId
+      ? undefined
+      : Math.min(requestedLimit, MAX_REVIEW_BATCH);
 
     const entries = await this.prisma.journalEntry.findMany({
       where,
@@ -315,7 +338,15 @@ export class JournalsService {
     if (scope === 'currentMonth') {
       return {
         startDate: new Date(now.getFullYear(), now.getMonth(), 1),
-        endDate: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999),
+        endDate: new Date(
+          now.getFullYear(),
+          now.getMonth() + 1,
+          0,
+          23,
+          59,
+          59,
+          999,
+        ),
       };
     }
 
@@ -323,7 +354,15 @@ export class JournalsService {
       const startMonth = Math.floor(now.getMonth() / 3) * 3;
       return {
         startDate: new Date(now.getFullYear(), startMonth, 1),
-        endDate: new Date(now.getFullYear(), startMonth + 3, 0, 23, 59, 59, 999),
+        endDate: new Date(
+          now.getFullYear(),
+          startMonth + 3,
+          0,
+          23,
+          59,
+          59,
+          999,
+        ),
       };
     }
 
@@ -359,7 +398,8 @@ export class JournalsService {
   ) {
     const flaggedEntries = analyses.filter(
       (item) =>
-        item.analysis.riskScore >= HIGH_RISK_THRESHOLD || item.analysis.flags.length > 0,
+        item.analysis.riskScore >= HIGH_RISK_THRESHOLD ||
+        item.analysis.flags.length > 0,
     );
     const riskiest = [...analyses].sort(
       (left, right) => right.analysis.riskScore - left.analysis.riskScore,

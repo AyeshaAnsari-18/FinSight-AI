@@ -52,12 +52,11 @@ export class NarrativesController {
 
   @Public()
   @Get(':id/report')
-  async report(
-    @Param('id') id: string,
-    @Res() res: Response,
-  ): Promise<void> {
+  async report(@Param('id') id: string, @Res() res: Response): Promise<void> {
     const report = await this.narrativesService.getReportById(id);
-    const filePath = await this.narrativesService.getReportFilePath(id).catch(() => null);
+    const filePath = await this.narrativesService
+      .getReportFilePath(id)
+      .catch(() => null);
 
     if (!filePath) {
       throw new NotFoundException('Generated report file not found.');
@@ -68,19 +67,21 @@ export class NarrativesController {
 
   @Public()
   @Get(':id/invoice')
-  async invoice(
-    @Param('id') id: string,
-    @Res() res: Response,
-  ): Promise<void> {
+  async invoice(@Param('id') id: string, @Res() res: Response): Promise<void> {
     const report = await this.narrativesService.getReportById(id);
-    const filePath = await this.narrativesService.getInvoiceFilePath(id).catch(() => null);
+    const filePath = await this.narrativesService
+      .getInvoiceFilePath(id)
+      .catch(() => null);
 
     if (filePath) {
       await this.pipePdf(res, filePath, `${report.fileName}-invoice.pdf`);
       return;
     }
 
-    if (report.fileUrl.startsWith('http://') || report.fileUrl.startsWith('https://')) {
+    if (
+      report.fileUrl.startsWith('http://') ||
+      report.fileUrl.startsWith('https://')
+    ) {
       res.redirect(report.fileUrl);
       return;
     }
@@ -95,10 +96,7 @@ export class NarrativesController {
 
   @Public()
   @Get(':id/download')
-  async download(
-    @Param('id') id: string,
-    @Res() res: Response,
-  ): Promise<void> {
+  async download(@Param('id') id: string, @Res() res: Response): Promise<void> {
     return this.report(id, res);
   }
 }

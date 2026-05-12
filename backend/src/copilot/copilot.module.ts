@@ -4,6 +4,6 @@ import { CopilotController } from './copilot.controller';
 
 @Module({
   providers: [CopilotService],
-  controllers: [CopilotController]
+  controllers: [CopilotController],
 })
 export class CopilotModule {}
