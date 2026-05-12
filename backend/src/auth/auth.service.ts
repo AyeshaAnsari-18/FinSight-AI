@@ -14,7 +14,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private config: ConfigService,
-  ) {}
+  ) { }
 
   async signupLocal(dto: AuthDto) {
     const hash = await argon2.hash(dto.password);
@@ -51,14 +51,6 @@ export class AuthService {
     await this.updateRtHash(user.id, tokens.refresh_token);
     return tokens;
   }
-
-  async logout(userId: string) {
-    await this.prisma.user.updateMany({
-      where: { id: userId, hashedRefreshToken: { not: null } },
-      data: { hashedRefreshToken: null },
-    });
-  }
-
   async refreshTokens(userId: string, rt: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -80,6 +72,14 @@ export class AuthService {
       data: { hashedRefreshToken: hash },
     });
   }
+
+  async logout(userId: string) {
+    await this.prisma.user.updateMany({
+      where: { id: userId, hashedRefreshToken: { not: null } },
+      data: { hashedRefreshToken: null },
+    });
+  }
+
 
   async getTokens(userId: string, email: string, role: string) {
     const [at, rt] = await Promise.all([
