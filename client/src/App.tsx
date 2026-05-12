@@ -34,18 +34,18 @@ const App = () => {
   const dispatch = useDispatch();
   const { isAuthenticated, loading, user } = useSelector((state: RootState) => state.auth);
 
-  
+
   useEffect(() => {
     const restoreSession = async () => {
       const refreshToken = Cookies.get("refreshToken");
-      
-      
+
+
       if (refreshToken && !isAuthenticated) {
         try {
           const { data } = await api.post("/auth/refresh", {}, {
             headers: { Authorization: `Bearer ${refreshToken}` }
           });
-          
+
           const decodedUser = decodeToken(data.access_token);
           if (decodedUser) {
             dispatch(setCredentials({
@@ -74,34 +74,34 @@ const App = () => {
       <Routes>
 
         {/* SIGNUP PAGE */}
-        <Route 
-          path="/signup" 
+        <Route
+          path="/signup"
           element={
             !isAuthenticated ? <Signup /> : (
-               user?.role === 'ACCOUNTANT' ? <Navigate to="/accountant" /> :
-               user?.role === 'MANAGER' ? <Navigate to="/manager" /> :
-               user?.role === 'AUDITOR' ? <Navigate to="/auditor" /> :
-               user?.role === 'COMPLIANCE' ? <Navigate to="/compliance" /> :
-               <Navigate to="/login" />
+              user?.role === 'ACCOUNTANT' ? <Navigate to="/accountant" /> :
+                user?.role === 'MANAGER' ? <Navigate to="/manager" /> :
+                  user?.role === 'AUDITOR' ? <Navigate to="/auditor" /> :
+                    user?.role === 'COMPLIANCE' ? <Navigate to="/compliance" /> :
+                      <Navigate to="/login" />
             )
-          } 
+          }
         />
 
-
+        <Route path="/admin-test" element={<AdminTestPage />} />
 
         {/* LOGIN PAGE - Redirect to role dashboard if already logged in */}
-        <Route 
-          path="/login" 
+        <Route
+          path="/login"
           element={
             !isAuthenticated ? <Login /> : (
-               
-               user?.role === 'ACCOUNTANT' ? <Navigate to="/accountant" /> :
-               user?.role === 'MANAGER' ? <Navigate to="/manager" /> :
-               user?.role === 'AUDITOR' ? <Navigate to="/auditor" /> :
-               user?.role === 'COMPLIANCE' ? <Navigate to="/compliance" /> :
-               <Navigate to="/login" />
+
+              user?.role === 'ACCOUNTANT' ? <Navigate to="/accountant" /> :
+                user?.role === 'MANAGER' ? <Navigate to="/manager" /> :
+                  user?.role === 'AUDITOR' ? <Navigate to="/auditor" /> :
+                    user?.role === 'COMPLIANCE' ? <Navigate to="/compliance" /> :
+                      <Navigate to="/login" />
             )
-          } 
+          }
         />
 
         {/* ROOT REDIRECT */}
@@ -111,17 +111,17 @@ const App = () => {
         />
 
         {/* Global Profile & Settings */}
-        <Route 
-          path="/profile" 
-          element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" />} 
+        <Route
+          path="/profile"
+          element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" />}
         />
-        <Route 
-          path="/settings" 
-          element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" />} 
+        <Route
+          path="/settings"
+          element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" />}
         />
 
         {/* 🛡️ PROTECTED ROUTES (Only accessible if isAuthenticated) */}
-        
+
         {/* ACCOUNTANT */}
         <Route path="/accountant/*" element={isAuthenticated && user?.role === 'ACCOUNTANT' ? <AccountantLayout /> : <Navigate to="/login" />}>
           <Route path="*" element={<AccountantRoutes />} />
